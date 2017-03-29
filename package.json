@@ -1,0 +1,23 @@
+{
+  "name": "node-pdftk",
+  "version": "1.0.0",
+  "description": "A wrapper for pdftk with streams and promises.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "jsdoc -c conf.json"
+  },
+  "keywords": [
+    "pdftk",
+    "pdf",
+    "fill",
+    "form",
+    "stream",
+    "promise"
+  ],
+  "author": "Justin Williamson",
+  "license": "MIT",
+  "devDependencies": {
+    "jsdoc": "^3.4.3"
+  }
+}

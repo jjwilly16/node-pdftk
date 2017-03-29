@@ -1,0 +1,16 @@
+{
+    "source": {
+        "include": [
+            "index.js"
+        ],
+        "exclude": [],
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {
+        "destination": "docs/",
+        "recurse": false,
+        "package": "package.json",
+        "readme": "README.md"
+    }
+}
