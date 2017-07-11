@@ -2,6 +2,8 @@
 
 const spawn = require('child_process').spawn;
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 /**
  * PdfTk Class
@@ -21,6 +23,14 @@ class PdfTk {
          * @type {Array}
          */
         this.src = src;
+
+        /**
+         * @member
+         * @type {Array}
+         */
+        this.tmpFiles = [];
+
+        this._checkForTempFiles();
 
         /**
          * @member
@@ -59,7 +69,13 @@ class PdfTk {
         const input = [];
 
         for (const srcFile of src) {
-            if (PdfTk.isObject(srcFile)) {
+            if (Buffer.isBuffer(srcFile)) {
+                const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
+                const uniqueId = crypto.randomBytes(16).toString('hex');
+                const tmpFile = `${tmpPath}${uniqueId}.pdf`;
+                fs.writeFileSync(tmpFile, srcFile);
+                input.push(tmpFile);
+            } else if (PdfTk.isObject(srcFile)) {
                 for (const handle in srcFile) {
                     if (srcFile.hasOwnProperty(handle)) {
                         if (!fs.existsSync(srcFile[handle])) throw new Error(`The input file "${srcFile[handle]}" does not exist`);
@@ -227,6 +243,31 @@ class PdfTk {
     }
 
     /**
+     * Check for the existence of a temp file path and add it to the tmpFiles array (to mark for deletion later).
+     * @private
+     */
+    _checkForTempFiles() {
+        for (let i = 0; i < this.src.length; i++) {
+            if (this.src[i].includes('node-pdftk-tmp')) {
+                this.tmpFiles.push(this.src[i]);
+            }
+        }
+    }
+
+    /**
+     * Clean up temp files, if created.
+     * @private
+     */
+    _cleanUpTempFiles() {
+        if (this.tmpFiles.length) {
+            for (let i = 0; i < this.tmpFiles.length; i++) {
+                const tmpFile = this.tmpFiles[i];
+                fs.unlinkSync(tmpFile);
+            }
+        }
+    }
+
+    /**
      * Run the command.
      * @public
      * @param {String} writeFile - Path to the output file to write from stdout. If used with the "outputDest" parameter, two files will be written.
@@ -245,11 +286,17 @@ class PdfTk {
 
             const result = [];
 
-            child.stderr.on('data', reject);
+            child.stderr.on('data', data => {
+                this._cleanUpTempFiles();
+                return reject(data);
+            });
 
             child.stdout.on('data', data => result.push(Buffer.from(data)));
 
             child.on('close', code => {
+
+                this._cleanUpTempFiles();
+
                 if (code === 0) {
                     const output = Buffer.concat(result);
                     if (writeFile) {
@@ -280,7 +327,7 @@ class PdfTk {
      */
     cat(catCommand) {
         this.args.push(
-            'shuffle'
+            'cat'
         );
         catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
         for (const cmd of catCommand) {
@@ -301,7 +348,7 @@ class PdfTk {
      */
     shuffle(shuffleCommand) {
         this.args.push(
-            'cat'
+            'shuffle'
         );
         shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
         for (const cmd of shuffleCommand) {
