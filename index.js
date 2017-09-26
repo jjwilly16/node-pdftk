@@ -329,11 +329,13 @@ class PdfTk {
         this.args.push(
             'cat'
         );
-        catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
-        for (const cmd of catCommand) {
-            this.args.push(
-                cmd
-            );
+        if (catCommand) {
+            catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
+            for (const cmd of catCommand) {
+                this.args.push(
+                    cmd
+                );
+            }
         }
         return this;
     }
