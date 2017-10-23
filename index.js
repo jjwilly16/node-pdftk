@@ -856,9 +856,12 @@ class PdfTk {
     /**
      * Allows the plugin to ignore the PDFTK warnings. Useful with huge PDF files.
      * @public
+     * @chainable
+     * @returns {Object} PdfTk class instance.
      */
     ignoreWarnings() {
         this._ignoreWarnings = true;
+        return this;
     }
 }
 
