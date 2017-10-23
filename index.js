@@ -50,6 +50,13 @@ class PdfTk {
          */
         this.postArgs = [];
 
+        /**
+         * @member
+         * @private
+         * @type {Boolean}
+         */
+        this._ignoreWarnings = false;
+
         return this;
     }
 
@@ -287,8 +294,9 @@ class PdfTk {
             const result = [];
 
             child.stderr.on('data', data => {
-                this._cleanUpTempFiles();
-                return reject(data);
+                if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
+                    return reject(data);
+                }
             });
 
             child.stdout.on('data', data => result.push(Buffer.from(data)));
@@ -842,6 +850,17 @@ class PdfTk {
         this.postArgs.push(
             'encrypt_128bit'
         );
+        return this;
+    }
+
+    /**
+     * Allows the plugin to ignore the PDFTK warnings. Useful with huge PDF files.
+     * @public
+     * @chainable
+     * @returns {Object} PdfTk class instance.
+     */
+    ignoreWarnings() {
+        this._ignoreWarnings = true;
         return this;
     }
 }
