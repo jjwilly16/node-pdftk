@@ -278,15 +278,19 @@ class PdfTk {
      * Run the command.
      * @public
      * @param {String} writeFile - Path to the output file to write from stdout. If used with the "outputDest" parameter, two files will be written.
-     * @param {String} outputDest - The output file to write without stdout. When present, the returning promise will not contain the output buffer. If used with the "writeFile" parameter, two files will be written.
+     * @param {String} [outputDest] - The output file to write without stdout. When present, the returning promise will not contain the output buffer. If used with the "writeFile" parameter, two files will be written.
+     * @param {Boolean} [needsOutput=true] - Optional boolean used to disclude the 'output' argument (only used for specific methods).
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
-    output(writeFile, outputDest) {
+    output(writeFile, outputDest, needsOutput = true) {
         return new Promise((resolve, reject) => {
-            this.args.push(
-                'output',
-                outputDest || '-'
-            );
+            if (needsOutput) {
+                this.args.push(
+                    'output',
+                    outputDest || '-'
+                );
+            }
+
             this.args = this.args.concat(this.postArgs);
 
             const child = spawn(this.command, this.args);
@@ -329,7 +333,7 @@ class PdfTk {
      * Assembles ("catenates") pages from input PDFs to create a new PDF.
      * @public
      * @chainable
-     * @param {String|Array} catCommand - Page ranges for cat method.
+     * @param {String|Array} [catCommand] - Page ranges for cat method.
      * @returns {Object} PdfTk class instance.
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-cat}
      */
@@ -352,7 +356,7 @@ class PdfTk {
      * Collates pages from input PDF to create new PDF.
      * @public
      * @chainable
-     * @param {String|Array} shuffleCommand - Page ranges for shuffle method.
+     * @param {String|Array} [shuffleCommand] - Page ranges for shuffle method.
      * @returns {Object} PdfTk class instance.
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-shuffle}
      */
@@ -360,11 +364,13 @@ class PdfTk {
         this.args.push(
             'shuffle'
         );
-        shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
-        for (const cmd of shuffleCommand) {
-            this.args.push(
-                cmd
-            );
+        if (shuffleCommand) {
+            shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
+            for (const cmd of shuffleCommand) {
+                this.args.push(
+                    cmd
+                );
+            }
         }
         return this;
     }
@@ -372,17 +378,16 @@ class PdfTk {
     /**
      * Splits a single PDF into individual pages.
      * @public
-     * @chainable
-     * @param {String|Array} outputOptions - Burst output options for naming conventions.
+     * @param {String} [outputOptions] - Burst output options for naming conventions.
      * @returns {Object} PdfTk class instance.
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst}
      */
     burst(outputOptions) {
-        outputOptions = Array.isArray(outputOptions) ? outputOptions.join(' ') : outputOptions;
         this.args.push(
             'burst'
         );
-        return this.output(null, outputOptions);
+        const hasOutput = !!outputOptions;
+        return this.output(null, (outputOptions || null), hasOutput);
     }
 
     /**
@@ -397,11 +402,13 @@ class PdfTk {
         this.args.push(
             'rotate'
         );
-        rotateCommand = Array.isArray(rotateCommand) ? rotateCommand : rotateCommand.split(' ');
-        for (const cmd of rotateCommand) {
-            this.args.push(
-                cmd
-            );
+        if (rotateCommand) {
+            rotateCommand = Array.isArray(rotateCommand) ? rotateCommand : rotateCommand.split(' ');
+            for (const cmd of rotateCommand) {
+                this.args.push(
+                    cmd
+                );
+            }
         }
         return this;
     }
@@ -811,17 +818,18 @@ class PdfTk {
      * Set permissions for a PDF. By not passing in the "perms" parameter, you are disabling all features.
      * @public
      * @chainable
-     * @param {Array|String} perms - Permissions to set. Choices are: Printing, DegradedPrinting, ModifyContents,
-     * Assembly, CopyContents, ScreenReaders, ModifyAnnotations, FillIn, AllFeatures.
+     * @param {Array|String} [perms] - Permissions to set. Choices are: Printing, DegradedPrinting, ModifyContents,
+     * Assembly, CopyContents, ScreenReaders, ModifyAnnotations, FillIn, AllFeatures. Passing no arguments will disable all.
      * @returns {Object} PdfTk class instance.
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-perms}
      */
     allow(perms) {
-        perms = Array.isArray(perms) ? perms.join(' ') : perms;
-        this.postArgs.push(
-            'allow',
-            perms
-        );
+        this.postArgs.push('allow');
+        if (perms) {
+            perms = Array.isArray(perms) ? perms.join(' ') : perms;
+            this.postArgs.push(perms);
+        }
+
         return this;
     }
 

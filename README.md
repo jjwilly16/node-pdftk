@@ -81,6 +81,8 @@ Any method called after input will simply add on commands. There is a certain am
 
 The **.output** method simply executes the command and spits out the stdout either as a buffer or to a file.
 
+- **Note:** - The output method is not needed for all methods (e.g. burst, unpackFiles)
+
 ## More Examples ##
 
 > Express example - render directly in browser
