@@ -6,6 +6,8 @@ A wrapper for [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) with
 
 Make sure you have [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) installed and in your system path.
 
+> **Mac users** - Be aware of [this PDFTk issue](https://github.com/jjwilly16/node-pdftk/issues/3)
+
 ## Installation ##
 
 ```cmd
