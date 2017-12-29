@@ -36,7 +36,7 @@ class PdfTk {
          * @member
          * @type {String}
          */
-        this.command = 'pdftk';
+        this.command = this.binaryPath || 'pdftk';
 
         /**
          * @member
@@ -234,7 +234,40 @@ class PdfTk {
     }
 
     /**
-     * Creates an input command that uses the stdin.
+     * Checks if the PdfTk binary exists on the current system
+     * @static
+     * @public
+     * @returns {Promise} Promise that resolves a boolean.
+     */
+    static hasPdfTk() {
+        const checkCommand = process.platform === 'win32' ? 'where' : 'which';
+
+        return new Promise((resolve, reject) => {
+            const binaryCheck = spawn(checkCommand, [
+                'pdftk',
+            ]);
+            binaryCheck.on('close', code => resolve(code === 0));
+            binaryCheck.on('error', () => resolve(false));
+        });
+    }
+
+    /**
+     * Set the config
+     * @static
+     * @public
+     * @param {Object} options - Config options.
+     * @param {String} [options.binaryPath] - Alternate path to the PdfTk executable.
+     * @returns {Object} PdfTk class instance.
+     */
+    static config({
+        binaryPath = 'pdftk',
+    }) {
+        PdfTk.prototype.binaryPath = binaryPath;
+        return PdfTk;
+    }
+
+    /**
+     * Creates an input command that uses stdin.
      * @private
      * @param {String} command - Command to create.
      * @param {String|Buffer} file - Stdin file.
@@ -283,50 +316,57 @@ class PdfTk {
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
     output(writeFile, outputDest, needsOutput = true) {
-        return new Promise((resolve, reject) => {
-            if (needsOutput) {
-                this.args.push(
-                    'output',
-                    outputDest || '-'
-                );
-            }
 
-            this.args = this.args.concat(this.postArgs);
+        return PdfTk.hasPdfTk()
+            .then(hasPdfTk =>
 
-            const child = spawn(this.command, this.args);
-
-            const result = [];
-
-            child.stderr.on('data', data => {
-                if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
-                    return reject(data);
-                }
-            });
-
-            child.stdout.on('data', data => result.push(Buffer.from(data)));
-
-            child.on('close', code => {
-
-                this._cleanUpTempFiles();
-
-                if (code === 0) {
-                    const output = Buffer.concat(result);
-                    if (writeFile) {
-                        return fs.writeFile(writeFile, output, err => {
-                            if (err) return reject(err);
-                            return resolve(output);
-                        });
+                new Promise((resolve, reject) => {
+                    if (needsOutput) {
+                        this.args.push(
+                            'output',
+                            outputDest || '-'
+                        );
                     }
-                    return resolve(output);
-                }
-                return reject(code);
-            });
 
-            if (this.stdin) {
-                child.stdin.write(this.stdin);
-                child.stdin.end();
-            }
-        });
+                    const pdftkCommand = hasPdfTk ? this.command : path.join(__dirname, '../../bin/pdftk');
+
+                    this.args = this.args.concat(this.postArgs);
+
+                    const child = spawn(pdftkCommand, this.args);
+
+                    const result = [];
+
+                    child.stderr.on('data', data => {
+                        if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
+                            return reject(data);
+                        }
+                    });
+
+                    child.stdout.on('data', data => result.push(Buffer.from(data)));
+
+                    child.on('close', code => {
+
+                        this._cleanUpTempFiles();
+
+                        if (code === 0) {
+                            const output = Buffer.concat(result);
+                            if (writeFile) {
+                                return fs.writeFile(writeFile, output, err => {
+                                    if (err) return reject(err);
+                                    return resolve(output);
+                                });
+                            }
+                            return resolve(output);
+                        }
+                        return reject(code);
+                    });
+
+                    if (this.stdin) {
+                        child.stdin.write(this.stdin);
+                        child.stdin.end();
+                    }
+                })
+            );
     }
 
     /**
