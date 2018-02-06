@@ -14,9 +14,10 @@ class PdfTk {
     /**
      * PdfTk constructor.
      * @param {Array} src - Input source file(s).
+     * @param {Array} [tmpFiles] - Array of temp files that have been created while initializing the constructor.
      * @returns {Object} PdfTk class instance.
      */
-    constructor(src) {
+    constructor(src, tmpFiles) {
 
         /**
          * @member
@@ -28,9 +29,7 @@ class PdfTk {
          * @member
          * @type {Array}
          */
-        this.tmpFiles = [];
-
-        this._checkForTempFiles();
+        this.tmpFiles = tmpFiles || [];
 
         /**
          * @member
@@ -69,24 +68,42 @@ class PdfTk {
      */
     static input(src) {
 
+        const input = [];
+        const tmpFiles = [];
+
+        /**
+         * Write a temp file and save the path for deletion later.
+         * @private
+         * @function
+         * @param {Object} srcFile - Buffer to be written as a temp file.
+         * @returns {String} Path of the newly created temp file.
+         */
+        function writeTempFile(srcFile) {
+            const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
+            const uniqueId = crypto.randomBytes(16).toString('hex');
+            const tmpFile = `${tmpPath}${uniqueId}.pdf`;
+            fs.writeFileSync(tmpFile, srcFile);
+            tmpFiles.push(tmpFile);
+            return tmpFile;
+        }
+
         src = Array.isArray(src) ? src : [
             src,
         ];
 
-        const input = [];
-
         for (const srcFile of src) {
             if (Buffer.isBuffer(srcFile)) {
-                const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
-                const uniqueId = crypto.randomBytes(16).toString('hex');
-                const tmpFile = `${tmpPath}${uniqueId}.pdf`;
-                fs.writeFileSync(tmpFile, srcFile);
-                input.push(tmpFile);
+                input.push(writeTempFile(srcFile));
             } else if (PdfTk.isObject(srcFile)) {
                 for (const handle in srcFile) {
                     if (srcFile.hasOwnProperty(handle)) {
-                        if (!fs.existsSync(srcFile[handle])) throw new Error(`The input file "${srcFile[handle]}" does not exist`);
-                        input.push(`${handle}=${srcFile[handle]}`);
+                        if (Buffer.isBuffer(srcFile[handle])) {
+                            input.push(`${handle}=${writeTempFile(srcFile[handle])}`);
+                        } else if (!fs.existsSync(srcFile[handle])) {
+                            throw new Error(`The input file "${srcFile[handle]}" does not exist`);
+                        } else {
+                            input.push(`${handle}=${srcFile[handle]}`);
+                        }
                     }
                 }
             } else {
@@ -95,7 +112,7 @@ class PdfTk {
             }
         }
 
-        return new PdfTk(input);
+        return new PdfTk(input, tmpFiles);
     }
 
     /**
@@ -247,18 +264,6 @@ class PdfTk {
             '-'
         );
         return this;
-    }
-
-    /**
-     * Check for the existence of a temp file path and add it to the tmpFiles array (to mark for deletion later).
-     * @private
-     */
-    _checkForTempFiles() {
-        for (let i = 0; i < this.src.length; i++) {
-            if (this.src[i].includes('node-pdftk-tmp')) {
-                this.tmpFiles.push(this.src[i]);
-            }
-        }
     }
 
     /**

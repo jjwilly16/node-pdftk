@@ -46,7 +46,7 @@ pdftk
 pdftk
     .input({
         A: './page1.pdf',
-        B: './page2.pdf',
+        B: fs.readFileSync('./page2.pdf'),
     })
     .cat('A B')
     .output('./2pagefile.pdf')
