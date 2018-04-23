@@ -272,8 +272,9 @@ class PdfTk {
      */
     _cleanUpTempFiles() {
         if (this.tmpFiles.length) {
-            for (let i = 0; i < this.tmpFiles.length; i++) {
+            for (let i = this.tmpFiles.length - 1; i >= 0; i--) {
                 const tmpFile = this.tmpFiles[i];
+                this.tmpFiles.splice(i, 1);
                 fs.unlinkSync(tmpFile);
             }
         }
@@ -304,7 +305,7 @@ class PdfTk {
 
             child.stderr.on('data', data => {
                 if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
-                    return reject(data);
+                    return reject(data.toString('utf8'));
                 }
             });
 
