@@ -1,6 +1,6 @@
 {
   "name": "node-pdftk",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A wrapper for pdftk with streams and promises.",
   "main": "index.js",
   "repository": {
