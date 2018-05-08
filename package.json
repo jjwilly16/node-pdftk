@@ -11,7 +11,7 @@
     "url": "https://github.com/jjwilly16/node-pdftk/issues"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/.bin/mocha",
     "docs": "jsdoc -c conf.json"
   },
   "keywords": [
@@ -25,6 +25,9 @@
   "author": "Justin Williamson <jjwilly1984@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "jsdoc": "^3.5.5"
-  }
+    "chai": "^4.1.2",
+    "jsdoc": "^3.5.5",
+    "mocha": "^5.1.1"
+  },
+  "dependencies": {}
 }
