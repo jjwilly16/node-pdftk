@@ -146,4 +146,16 @@ pdftk
 
 > The tests are a work in progress
 
-The test pdf files in test/files were generated on a Windows machine, so if you are running something else you will most likely have to regenerate them in order for the tests to pass.
+Because of the small differences with pdfs being generated across OS platforms, some of the test files are generated in the npm 'pretest' script with pdftk. If you have some sort of special setup where your pdftk path is not standard, you will want to edit that script in package.json.
+
+Run tests with:
+
+```bash
+npm install && npm test
+```
+
+Test coverage with:
+
+```bash
+npm run test-coverage
+```

@@ -1,3 +1,6 @@
 node_modules
 testing
 test/files/*.temp.pdf
+coverage/*
+.nyc_output
+.vscode
