@@ -1,0 +1,12 @@
+node_modules
+testing
+test/files/*.temp.pdf
+coverage/*
+.nyc_output
+.vscode
+.github
+docs
+test
+conf.json
+.eslintignore
+.eslintrc.yml
