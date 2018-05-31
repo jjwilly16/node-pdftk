@@ -4,6 +4,7 @@ const expect = chai.expect;
 
 const pdftk = require('../');
 const fs = require('fs');
+const path = require('path');
 
 describe('PDFtk Tests', function () {
     this.slow(250);
@@ -11,10 +12,10 @@ describe('PDFtk Tests', function () {
 
     it('Fill a Form', function () {
 
-        const testFile = fs.readFileSync('./test/files/filledform.pdf');
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledform.temp.pdf'));
 
         return pdftk
-            .input('./test/files/form.pdf')
+            .input(path.join(__dirname, './files/form.pdf'))
             .fillForm({
                 name: 'John Doe',
                 email: 'test@email.com',
@@ -28,10 +29,14 @@ describe('PDFtk Tests', function () {
 
     it('Flatten Filled Form', function () {
 
-        const testFile = fs.readFileSync('./test/files/filledformflat.pdf');
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledformflat.temp.pdf'));
 
         return pdftk
-            .input('./test/files/filledform.pdf')
+            .input(path.join(__dirname, './files/form.pdf'))
+            .fillForm({
+                name: 'John Doe',
+                email: 'test@email.com',
+            })
             .flatten()
             .output()
             .then(function (buffer) {
@@ -42,11 +47,11 @@ describe('PDFtk Tests', function () {
 
     it('Stamp PDF', function () {
 
-        const testFile = fs.readFileSync('./test/files/stamp.pdf');
+        const testFile = fs.readFileSync(path.join(__dirname, './files/stamp.temp.pdf'));
 
         return pdftk
-            .input('./test/files/filledformflat.pdf')
-            .stamp('./test/files/logo.pdf')
+            .input(path.join(__dirname, './files/form.pdf'))
+            .stamp(path.join(__dirname, './files/logo.pdf'))
             .output()
             .then(function (buffer) {
                 expect(buffer.equals(testFile)).to.be.true;
@@ -56,12 +61,11 @@ describe('PDFtk Tests', function () {
 
     it('Catenate Pages', function () {
 
-        const testFile = fs.readFileSync('./test/files/documentcat.pdf');
-
+        const testFile = fs.readFileSync(path.join(__dirname, './files/documentcat.temp.pdf'));
         return pdftk
             .input({
-                A: './test/files/document1.pdf',
-                B: './test/files/document2.pdf',
+                A: path.join(__dirname, './files/document1.pdf',),
+                B: path.join(__dirname, './files/document2.pdf',),
             })
             .cat('A B')
             .output()
@@ -73,9 +77,11 @@ describe('PDFtk Tests', function () {
                 // 0xBB98: /ID
                 //-------------------
                 // compare the bits around the changes
-                expect(buffer.compare(testFile, 0x0000, 0xB5A0, 0x0000, 0xB5A0)).to.equal(0);
-                expect(buffer.compare(testFile, 0xB5B6, 0xB5C8, 0xB5B6, 0xB5C8)).to.equal(0);
-                expect(buffer.compare(testFile, 0xB5DE, 0xBBA0, 0xB5DE, 0xBBA0)).to.equal(0);
+                // expect(buffer.compare(testFile, 0x0000, 0xB5A0, 0x0000, 0xB5A0)).to.equal(0);
+                // expect(buffer.compare(testFile, 0xB5B6, 0xB5C8, 0xB5B6, 0xB5C8)).to.equal(0);
+                // expect(buffer.compare(testFile, 0xB5DE, 0xBBA0, 0xB5DE, 0xBBA0)).to.equal(0);
+                console.log(buffer);
+                expect(buffer.equals(testFile)).to.be.true;
             });
     });
 

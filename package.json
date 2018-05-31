@@ -11,7 +11,9 @@
     "url": "https://github.com/jjwilly16/node-pdftk/issues"
   },
   "scripts": {
+    "pretest": "pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf && pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten && pdftk test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf && pdftk A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcat.temp.pdf",
     "test": "./node_modules/.bin/mocha",
+    "test-coverage": "node_modules/.bin/nyc --reporter=html --reporter=text node_modules/.bin/mocha test/*",
     "docs": "jsdoc -c conf.json"
   },
   "keywords": [
@@ -27,7 +29,8 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "jsdoc": "^3.5.5",
-    "mocha": "^5.1.1"
+    "mocha": "^5.1.1",
+    "nyc": "^11.8.0"
   },
   "dependencies": {}
 }

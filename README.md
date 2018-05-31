@@ -141,3 +141,9 @@ pdftk
         // handle errors
     });
 ```
+
+## Testing ##
+
+> The tests are a work in progress
+
+The test pdf files in test/files were generated on a Windows machine, so if you are running something else you will most likely have to regenerate them in order for the tests to pass.

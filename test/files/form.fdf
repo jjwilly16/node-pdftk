@@ -1,0 +1,24 @@
+%FDF-1.2
+%����
+1 0 obj
+<<
+/FDF
+<<
+/Fields [
+<<
+/V (test@email.com)
+/T (email)
+>>
+<<
+/V (John Doe)
+/T (name)
+>>]
+>>
+>>
+endobj
+trailer
+
+<<
+/Root 1 0 R
+>>
+%%EOF
