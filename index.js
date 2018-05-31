@@ -309,15 +309,15 @@ class PdfTk {
                 }
             });
 
-            child.on('error', (e) => {
-              if (e.code === 'ENOENT') {
-                throw new Error(`
-                  pdftk was called but is not installed on your system.
-                  Install it here: https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/
-                `);
-              } else {
-                throw e
-              }
+            child.on('error', e => {
+                if (e.code === 'ENOENT') {
+                    throw new Error(`
+                    pdftk was called but is not installed on your system.
+                    Install it here: https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/
+                    `);
+                } else {
+                    throw e;
+                }
             });
 
             child.stdout.on('data', data => result.push(Buffer.from(data)));
