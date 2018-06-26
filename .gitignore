@@ -1,6 +1,6 @@
 node_modules
 testing
-test/files/*.temp.pdf
+test/files/*.temp.*
 coverage/*
 .nyc_output
 .vscode
