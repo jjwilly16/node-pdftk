@@ -1,6 +1,6 @@
 'use strict';
 
-const spawn = require('child_process').spawn;
+const { spawn, } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -159,39 +159,31 @@ class PdfTk {
      */
     static generateFdfFromJSON(data) {
 
-        const header = Buffer.from(
-            `%FDF-1.2\n
+        const header = Buffer.from(`
+            %FDF-1.2\n
             ${String.fromCharCode(226) + String.fromCharCode(227) + String.fromCharCode(207) + String.fromCharCode(211)}\n
             1 0 obj\n
             <<\n
             /FDF\n
             <<\n
-            /Fields [\n`
-        );
+            /Fields [\n
+        `);
 
         let body = Buffer.from('');
 
         for (const prop in data) {
             if (data.hasOwnProperty(prop)) {
-                body = Buffer.concat(
-                    [
-                        body,
-                        Buffer.from(
-                            `<<\n
-                            /T (`
-                        ),
-                    ]
-                );
+                body = Buffer.concat([
+                    body,
+                    Buffer.from('<<\n/T ('),
+                ]);
                 body = Buffer.concat([
                     body,
                     Buffer.from(prop, 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(
-                        `)\n
-                        /V (`
-                    ),
+                    Buffer.from(')\n/V('),
                 ]);
                 body = Buffer.concat([
                     body,
@@ -199,16 +191,13 @@ class PdfTk {
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(
-                        `)\n
-                        >>\n`
-                    ),
+                    Buffer.from(')\n>>\n'),
                 ]);
             }
         }
 
-        const footer = Buffer.from(
-            `]\n
+        const footer = Buffer.from(`
+            ]\n
             >>\n
             >>\n
             endobj \n
@@ -217,8 +206,8 @@ class PdfTk {
             <<\n
             /Root 1 0 R\n
             >>\n
-            %%EOF\n`
-        );
+            %%EOF\n
+        `);
 
         return Buffer.concat([
             header,
@@ -355,15 +344,11 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-cat}
      */
     cat(catCommand) {
-        this.args.push(
-            'cat'
-        );
+        this.args.push('cat');
         if (catCommand) {
             catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
             for (const cmd of catCommand) {
-                this.args.push(
-                    cmd
-                );
+                this.args.push(cmd);
             }
         }
         return this;
@@ -378,15 +363,11 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-shuffle}
      */
     shuffle(shuffleCommand) {
-        this.args.push(
-            'shuffle'
-        );
+        this.args.push('shuffle');
         if (shuffleCommand) {
             shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
             for (const cmd of shuffleCommand) {
-                this.args.push(
-                    cmd
-                );
+                this.args.push(cmd);
             }
         }
         return this;
@@ -400,9 +381,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst}
      */
     burst(outputOptions) {
-        this.args.push(
-            'burst'
-        );
+        this.args.push('burst');
         const hasOutput = !!outputOptions;
         return this.output(null, (outputOptions || null), hasOutput);
     }
@@ -416,15 +395,11 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-rotate}
      */
     rotate(rotateCommand) {
-        this.args.push(
-            'rotate'
-        );
+        this.args.push('rotate');
         if (rotateCommand) {
             rotateCommand = Array.isArray(rotateCommand) ? rotateCommand : rotateCommand.split(' ');
             for (const cmd of rotateCommand) {
-                this.args.push(
-                    cmd
-                );
+                this.args.push(cmd);
             }
         }
         return this;
@@ -438,9 +413,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-generate-fdf}
      */
     generateFdf() {
-        this.args.push(
-            'generate_fdf'
-        );
+        this.args.push('generate_fdf');
         return this;
     }
 
@@ -513,9 +486,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data}
      */
     dumpData() {
-        this.args.push(
-            'dump_data'
-        );
+        this.args.push('dump_data');
         return this;
     }
 
@@ -527,9 +498,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-utf8}
      */
     dumpDataUtf8() {
-        this.args.push(
-            'dump_data_utf8'
-        );
+        this.args.push('dump_data_utf8');
         return this;
     }
 
@@ -541,9 +510,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-fields}
      */
     dumpDataFields() {
-        this.args.push(
-            'dump_data_fields'
-        );
+        this.args.push('dump_data_fields');
         return this;
     }
 
@@ -555,9 +522,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-fields-utf8}
      */
     dumpDataFieldsUtf8() {
-        this.args.push(
-            'dump_data_fields_utf8'
-        );
+        this.args.push('dump_data_fields_utf8');
         return this;
     }
 
@@ -569,9 +534,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-annots}
      */
     dumpDataAnnots() {
-        this.args.push(
-            'dump_data_annots'
-        );
+        this.args.push('dump_data_annots');
         return this;
     }
 
@@ -617,14 +580,10 @@ class PdfTk {
             files,
         ];
 
-        this.args.push(
-            'attach_files'
-        );
+        this.args.push('attach_files');
 
         for (const file of files) {
-            this.args.push(
-                file
-            );
+            this.args.push(file);
         }
 
         return this;
@@ -640,9 +599,7 @@ class PdfTk {
      */
     unpackFiles(outputDir) {
 
-        this.args.push(
-            'unpack_files'
-        );
+        this.args.push('unpack_files');
         return this.output(null, outputDir);
 
     }
@@ -858,9 +815,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-strength}
      */
     encrypt40Bit() {
-        this.postArgs.push(
-            'encrypt_40bit'
-        );
+        this.postArgs.push('encrypt_40bit');
         return this;
     }
 
@@ -872,9 +827,7 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-strength}
      */
     encrypt128Bit() {
-        this.postArgs.push(
-            'encrypt_128bit'
-        );
+        this.postArgs.push('encrypt_128bit');
         return this;
     }
 

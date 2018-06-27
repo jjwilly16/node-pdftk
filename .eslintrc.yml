@@ -1,5 +1,3 @@
-# npm install --save-dev eslint eslint-config-airbnb-base
-
 # Import and use airbnb code style
 extends: airbnb-base
 
