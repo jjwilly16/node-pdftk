@@ -11,9 +11,10 @@
     "url": "https://github.com/jjwilly16/node-pdftk/issues"
   },
   "scripts": {
-    "pretest": "pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf && pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten && pdftk test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf && pdftk A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id && pdftk test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf && pdftk test/files/form.pdf generate_fdf output test/files/form.temp.fdf",
+    "pretest": "pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf && pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten && pdftk test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf && pdftk A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id && pdftk test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf && pdftk test/files/form.pdf generate_fdf output test/files/form.temp.fdf && pdftk test/files/document1.pdf background test/files/logo-multiple-pages.pdf output test/files/background.temp.pdf && pdftk test/files/document1.pdf multibackground test/files/logo-multiple-pages.pdf output test/files/multiBackground.temp.pdf",
     "test": "./node_modules/.bin/mocha",
-    "test-coverage": "npm test && node_modules/.bin/nyc --reporter=html --reporter=text node_modules/.bin/mocha test/*",
+    "posttest": "rimraf test/files/*.temp.*",
+    "coverage": "node_modules/.bin/nyc --reporter=html --reporter=text npm run test",
     "docs": "jsdoc -c conf.json"
   },
   "keywords": [

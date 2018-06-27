@@ -157,5 +157,5 @@ npm install && npm test
 Test coverage with:
 
 ```bash
-npm run test-coverage
+npm run coverage
 ```

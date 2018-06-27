@@ -1,16 +1,16 @@
 /* globals describe, it */
 const chai = require('chai');
 
-const expect = chai.expect;
+const { expect, } = chai;
 
 const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
 
-describe('PDFtk Tests', function () {
+describe('cat', function () {
     this.slow(250);
 
-    it('Catenate Pages', function () {
+    it('should catenate pages', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/documentcat.temp.pdf'));
         return pdftk
@@ -36,9 +36,7 @@ describe('PDFtk Tests', function () {
                     .updateInfoUtf8(path.join(__dirname, './files/documentcat.info'))
                     .output();
             })
-            .then(buffer =>
-                expect(buffer.equals(testFile)).to.be.true
-            );
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true);
     });
 
 

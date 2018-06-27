@@ -1,17 +1,17 @@
 /* globals describe, it */
 const chai = require('chai');
 
-const expect = chai.expect;
+const { expect, } = chai;
 
 const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
 
-describe('PDFtk Tests', function () {
+describe('generateFdf', function () {
     this.slow(250);
 
 
-    it('Generate FDF', function () {
+    it('generate an fdf file from a pdf', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/form.temp.fdf'));
 
@@ -19,9 +19,7 @@ describe('PDFtk Tests', function () {
             .input(path.join(__dirname, './files/form.pdf'))
             .generateFdf()
             .output()
-            .then(buffer =>
-                expect(buffer.equals(testFile)).to.be.true
-            );
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true);
     });
 
 

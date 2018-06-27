@@ -1,17 +1,17 @@
 /* globals describe, it */
 const chai = require('chai');
 
-const expect = chai.expect;
+const { expect, } = chai;
 
 const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
 
-describe('PDFtk Tests', function () {
+describe('fillForm', function () {
     this.slow(250);
 
 
-    it('Fill a Form', function () {
+    it('should fill a form without flattening it', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/filledform.temp.pdf'));
 
@@ -22,13 +22,11 @@ describe('PDFtk Tests', function () {
                 email: 'test@email.com',
             })
             .output()
-            .then(buffer =>
-                expect(buffer.equals(testFile)).to.be.true
-            );
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true);
     });
 
 
-    it('Flatten Filled Form', function () {
+    it('fill a form and flatten it', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/filledformflat.temp.pdf'));
 
@@ -40,9 +38,7 @@ describe('PDFtk Tests', function () {
             })
             .flatten()
             .output()
-            .then(buffer =>
-                expect(buffer.equals(testFile)).to.be.true
-            );
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true);
     });
 
 
