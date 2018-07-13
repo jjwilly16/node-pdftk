@@ -300,12 +300,12 @@ class PdfTk {
 
             child.on('error', e => {
                 if (e.code === 'ENOENT') {
-                    throw new Error(`
+                    return reject(new Error(`
                     pdftk was called but is not installed on your system.
                     Install it here: https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/
-                    `);
+                    `));
                 } else {
-                    throw e;
+                    return reject(e);
                 }
             });
 
