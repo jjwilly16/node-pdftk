@@ -99,15 +99,12 @@ class PdfTk {
                     if (srcFile.hasOwnProperty(handle)) {
                         if (Buffer.isBuffer(srcFile[handle])) {
                             input.push(`${handle}=${writeTempFile(srcFile[handle])}`);
-                        } else if (!fs.existsSync(srcFile[handle])) {
-                            throw new Error(`The input file "${srcFile[handle]}" does not exist`);
                         } else {
                             input.push(`${handle}=${srcFile[handle]}`);
                         }
                     }
                 }
             } else {
-                if (!fs.existsSync(srcFile)) throw new Error(`The input file "${srcFile}" does not exist`);
                 input.push(srcFile);
             }
         }
@@ -572,8 +569,6 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-attach} for more information.
      */
     attachFiles(files) {
-
-        if (!files || !files.length) throw new Error('The "attachFiles" method requires a file');
 
         files = Array.isArray(files) ? files : [
             files,
