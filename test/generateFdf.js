@@ -1,7 +1,6 @@
 /* globals describe, it */
-const chai = require('chai');
 
-const { expect, } = chai;
+const { expect, } = require('chai');
 
 const pdftk = require('../');
 const fs = require('fs');
