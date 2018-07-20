@@ -2,7 +2,7 @@ const lint = require('mocha-eslint');
 
 const paths = [
     'index.js',
-    'test/*.js',
+    'test/*.spec.js',
 ];
 
 lint(paths);

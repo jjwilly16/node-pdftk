@@ -6,7 +6,7 @@ A wrapper for [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) with
 
 ## Requirements ##
 
-Make sure you have [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) installed and in your system path.
+Make sure you have [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) installed and in your system path (or configure the plugin to point to your binary file - see options below).
 
 > **Mac users** - Be aware of [this PDFTk issue](https://github.com/jjwilly16/node-pdftk/issues/3)
 
@@ -75,6 +75,27 @@ pdftk
     });
 ```
 
+## Options ##
+
+Options can be configured with the **configure** method. These options will be inherited by all instances.
+
+```javascript
+const pdftk = require('node-pdftk');
+
+pdftk.configure({
+    bin: '/your/path/to/pdftk/bin',
+    Promise: require('bluebird'),
+    ignoreWarnings: true,
+});
+```
+
+---
+Name | Description | Type | Default Value
+--- | --- | --- | ---
+bin | Path to your PdfTk executable | String | 'pdftk'
+Promise | Promise library to implement | Object | Promise
+ignoreWarnings | Ignore PdfTk warnings. Useful with huge PDF files | Boolean | False
+
 ## How it works ##
 
 All instances must begin with the **.input** method and end with the **.output** method.
@@ -85,7 +106,7 @@ Any method called after input will simply add on commands. There is a certain am
 
 The **.output** method simply executes the command and spits out the stdout either as a buffer or to a file.
 
-- **Note:** - The output method is not needed for all methods (e.g. burst, unpackFiles)
+- **Note:** - The output method is not needed for all methods (e.g. burst, unpackFiles) - it is internally called with those.
 
 ## More Examples ##
 
@@ -146,7 +167,7 @@ pdftk
 
 > The tests are a work in progress
 
-Because of the small differences with pdfs being generated across OS platforms, some of the test files are generated in the npm 'pretest' script with pdftk. If you have some sort of special setup where your pdftk path is not standard, you will want to edit that script in package.json.
+Because of the small differences with pdfs being generated across OS platforms, a lot of the test files are generated in the npm 'pretest' script with pdftk. If you have some sort of special setup where your pdftk path is not standard, you will want to edit that script in [pretest.js](./pretest.js).
 
 Run tests with:
 
