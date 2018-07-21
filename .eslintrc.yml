@@ -57,6 +57,9 @@ rules:
   # allow ~~
   no-bitwise: 0
 
+  # allow old buffer constructor
+  no-buffer-constructor: 0
+
   # console is allowed
   no-console: 0
 

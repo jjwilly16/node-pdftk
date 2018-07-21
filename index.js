@@ -66,10 +66,16 @@ class PdfTk {
                 return tmpFile;
             };
 
+            /**
+             * Make sure input src is an array
+             */
             src = Array.isArray(src) ? src : [
                 src,
             ];
 
+            /**
+             * Loop through src and push to input array
+             */
             for (const srcFile of src) {
                 if (Buffer.isBuffer(srcFile)) {
                     input.push(writeTempFile(srcFile));
@@ -112,6 +118,7 @@ class PdfTk {
              * @type {Boolean}
              */
             this._ignoreWarnings = false;
+
         } catch (err) {
             this.error = err;
         }
@@ -146,12 +153,26 @@ class PdfTk {
      * Returns a buffer from a file.
      * @static
      * @public
-     * @param {String|Buffer} file - File to buffer.
-     * @returns {Buffer} Buffered file.
+     * @param {(String|Buffer)} file - File to buffer.
+     * @returns {Object} Buffered file.
      */
-    static toBuffer(file) {
+    static fileToBuffer(file) {
         file = PdfTk.isString(file) ? fs.readFileSync(file) : file;
         return file;
+    }
+
+    /**
+     * Returns a buffer from a string.
+     * @static
+     * @public
+     * @param {(String|Buffer)} str - String to buffer.
+     * @returns {Object} Buffered string.
+     */
+    static stringToBuffer(str) {
+        if (Buffer.from) {
+            return Buffer.from(str);
+        }
+        return new Buffer(str);
     }
 
     /**
@@ -164,7 +185,7 @@ class PdfTk {
      */
     static generateFdfFromJSON(data) {
 
-        const header = Buffer.from(`
+        const header = PdfTk.stringToBuffer(`
             %FDF-1.2\n
             ${String.fromCharCode(226) + String.fromCharCode(227) + String.fromCharCode(207) + String.fromCharCode(211)}\n
             1 0 obj\n
@@ -174,34 +195,34 @@ class PdfTk {
             /Fields [\n
         `);
 
-        let body = Buffer.from('');
+        let body = PdfTk.stringToBuffer('');
 
         for (const prop in data) {
             if (data.hasOwnProperty(prop)) {
                 body = Buffer.concat([
                     body,
-                    Buffer.from('<<\n/T ('),
+                    PdfTk.stringToBuffer('<<\n/T ('),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(prop, 'binary'),
+                    PdfTk.stringToBuffer(prop, 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(')\n/V('),
+                    PdfTk.stringToBuffer(')\n/V('),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(data[prop], 'binary'),
+                    PdfTk.stringToBuffer(data[prop], 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(')\n>>\n'),
+                    PdfTk.stringToBuffer(')\n>>\n'),
                 ]);
             }
         }
 
-        const footer = Buffer.from(`
+        const footer = PdfTk.stringToBuffer(`
             ]\n
             >>\n
             >>\n
@@ -233,11 +254,11 @@ class PdfTk {
         const info = [];
         for (const prop in data) {
             if (data.hasOwnProperty(prop)) {
-                const begin = Buffer.from('InfoBegin\nInfoKey: ');
-                const key = Buffer.from(prop);
-                const newline = Buffer.from('\nInfoValue: ');
-                const value = Buffer.from(data[prop]);
-                const newline2 = Buffer.from('\n');
+                const begin = PdfTk.stringToBuffer('InfoBegin\nInfoKey: ');
+                const key = PdfTk.stringToBuffer(prop);
+                const newline = PdfTk.stringToBuffer('\nInfoValue: ');
+                const value = PdfTk.stringToBuffer(data[prop]);
+                const newline2 = PdfTk.stringToBuffer('\n');
                 info.push(begin, key, newline, value, newline2);
             }
         }
@@ -254,7 +275,7 @@ class PdfTk {
     _commandWithStdin(command, file) {
         if (this.error) return this;
         try {
-            this.stdin = PdfTk.toBuffer(file);
+            this.stdin = PdfTk.fileToBuffer(file);
             this.args.push(
                 command,
                 '-'
@@ -325,7 +346,7 @@ class PdfTk {
                     return reject(e);
                 });
 
-                child.stdout.on('data', data => result.push(Buffer.from(data)));
+                child.stdout.on('data', data => result.push(PdfTk.stringToBuffer(data)));
 
                 child.on('close', code => {
 
