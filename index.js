@@ -291,11 +291,11 @@ class PdfTk {
      * @private
      */
     _cleanUpTempFiles() {
-        if (this.tmpFiles.length) {
-            for (let i = this.tmpFiles.length - 1; i >= 0; i--) {
-                const tmpFile = this.tmpFiles[i];
-                this.tmpFiles.splice(i, 1);
-                fs.unlinkSync(tmpFile);
+        while (this.tmpFiles.length > 0) {
+            try {
+                fs.unlinkSync(this.tmpFiles.pop());
+            } catch (err) {
+                /* keep going */
             }
         }
     }
@@ -332,11 +332,13 @@ class PdfTk {
 
                 child.stderr.on('data', data => {
                     if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
+                        this._cleanUpTempFiles();
                         return reject(data.toString('utf8'));
                     }
                 });
 
                 child.on('error', e => {
+                    this._cleanUpTempFiles();
                     if (e.code === 'ENOENT') {
                         return reject(new Error(`
                         pdftk was called but is not installed on your system.
@@ -370,6 +372,7 @@ class PdfTk {
                     child.stdin.end();
                 }
             } catch (err) {
+                this._cleanUpTempFiles();
                 return reject(err);
             }
 
@@ -377,7 +380,7 @@ class PdfTk {
     }
 
     /**
-     * Assembles ("catenates") pages from input PDFs to create a new PDF.
+     * Assembles ("concatenate") pages from input PDFs to create a new PDF.
      * @public
      * @chainable
      * @param {String|Array} [catCommand] - Page ranges for cat method.
@@ -428,7 +431,7 @@ class PdfTk {
      * Splits a single PDF into individual pages.
      * @public
      * @param {String} [outputOptions] - Burst output options for naming conventions.
-     * @returns {Object} PdfTk class instance.
+     * @returns {Object} Promise callback
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst}
      */
     burst(outputOptions) {
