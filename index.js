@@ -270,20 +270,13 @@ class PdfTk {
      * @private
      * @param {String} command - Command to create.
      * @param {String|Buffer} file - Stdin file.
-     * @returns {Object} PdfTk class instance.
      */
     _commandWithStdin(command, file) {
-        if (this.error) return this;
-        try {
-            this.stdin = PdfTk.fileToBuffer(file);
-            this.args.push(
-                command,
-                '-'
-            );
-        } catch (err) {
-            this.error = err;
-        }
-        return this;
+        this.stdin = PdfTk.fileToBuffer(file);
+        this.args.push(
+            command,
+            '-'
+        );
     }
 
     /**
@@ -498,10 +491,11 @@ class PdfTk {
         if (this.error) return this;
         try {
             data = PdfTk.isString(data) ? data : PdfTk.generateFdfFromJSON(data);
+            this._commandWithStdin('fill_form', data);
         } catch (err) {
             this.error = err;
         }
-        return this._commandWithStdin('fill_form', data);
+        return this;
     }
 
     /**
@@ -514,7 +508,12 @@ class PdfTk {
      */
     background(file) {
         if (this.error) return this;
-        return this._commandWithStdin('background', file);
+        try {
+            this._commandWithStdin('background', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -527,7 +526,12 @@ class PdfTk {
      */
     multiBackground(file) {
         if (this.error) return this;
-        return this._commandWithStdin('multibackground', file);
+        try {
+            this._commandWithStdin('multibackground', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -540,7 +544,12 @@ class PdfTk {
      */
     stamp(file) {
         if (this.error) return this;
-        return this._commandWithStdin('stamp', file);
+        try {
+            this._commandWithStdin('stamp', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -553,7 +562,12 @@ class PdfTk {
      */
     multiStamp(file) {
         if (this.error) return this;
-        return this._commandWithStdin('multistamp', file);
+        try {
+            this._commandWithStdin('multistamp', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -653,10 +667,11 @@ class PdfTk {
         if (this.error) return this;
         try {
             data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
+            this._commandWithStdin('update_info', data);
         } catch (err) {
             this.error = err;
         }
-        return this._commandWithStdin('update_info', data);
+        return this;
     }
 
     /**
@@ -671,10 +686,11 @@ class PdfTk {
         if (this.error) return this;
         try {
             data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
+            this._commandWithStdin('update_info_utf8', data);
         } catch (err) {
             this.error = err;
         }
-        return this._commandWithStdin('update_info_utf8', data);
+        return this;
     }
 
     /**
