@@ -81,6 +81,7 @@ class PdfTk {
                     input.push(writeTempFile(srcFile));
                 } else if (PdfTk.isObject(srcFile)) {
                     for (const handle in srcFile) {
+                        /* istanbul ignore else  */
                         if (srcFile.hasOwnProperty(handle)) {
                             if (Buffer.isBuffer(srcFile[handle])) {
                                 input.push(`${handle}=${writeTempFile(srcFile[handle])}`);
@@ -198,6 +199,7 @@ class PdfTk {
         let body = PdfTk.stringToBuffer('');
 
         for (const prop in data) {
+            /* istanbul ignore else  */
             if (data.hasOwnProperty(prop)) {
                 body = Buffer.concat([
                     body,
@@ -253,6 +255,7 @@ class PdfTk {
     static generateInfoFromJSON(data) {
         const info = [];
         for (const prop in data) {
+            /* istanbul ignore else  */
             if (data.hasOwnProperty(prop)) {
                 const begin = PdfTk.stringToBuffer('InfoBegin\nInfoKey: ');
                 const key = PdfTk.stringToBuffer(prop);

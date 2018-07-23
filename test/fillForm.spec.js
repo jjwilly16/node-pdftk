@@ -136,7 +136,7 @@ describe('fillForm', function () {
     it('should catch an error if given bad form data', function () {
 
         const input = path.join(__dirname, './files/form.pdf');
-        const output = path.join(__dirname, './file/path/that/does/not/exist.pdf');
+        const output = path.join(__dirname, './files/output.filledformflat.temp.pdf');
 
         return pdftk
             .input(input)

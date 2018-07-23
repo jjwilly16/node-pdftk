@@ -22,10 +22,10 @@ function sequentialPromise(operations) {
 const commands = [
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf',
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten',
-    'test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf',
-    // 'A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id', 'test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf',
     'test/files/form.pdf generate_fdf output test/files/form.temp.fdf',
-    // 'test/files/form.pdf background test/files/logo-multiple-pages.pdf output test/files/background.temp.pdf',
+    'test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf',
+    'A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id', 'test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf',
+    'test/files/form.pdf background test/files/logo.pdf output test/files/background.temp.pdf',
     // 'test/files/form.pdf multibackground test/files/logo-multiple-pages.pdf output test/files/multibackground.temp.pdf',
 ].map(i => pdftk.bind(this, i));
 
