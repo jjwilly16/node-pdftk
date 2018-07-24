@@ -28,6 +28,8 @@ const commands = [
     'A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id', 'test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf',
     'test/files/form.pdf background test/files/logo.pdf output test/files/background.temp.pdf',
     'test/files/form.pdf multibackground test/files/logo.pdf output test/files/multibackground.temp.pdf',
+    'test/files/form.pdf dump_data_fields output test/files/form.fields.temp.info',
+    'test/files/form.pdf dump_data_fields_utf8 output test/files/form.fields.utf8.temp.info',
 ].map(i => pdftk.bind(this, i));
 
 

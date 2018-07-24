@@ -56,7 +56,7 @@ describe('multiBackground', function () {
         const testFile = fs.readFileSync(path.join(__dirname, './files/multibackground.temp.pdf'));
         const input = fs.readFileSync(path.join(__dirname, './files/form.pdf'));
         const background = path.join(__dirname, './files/logo.pdf');
-        const output = path.join(__dirname, './files/output.background.temp.pdf');
+        const output = path.join(__dirname, './files/output.multibackground.temp.pdf');
 
         return pdftk
             .input(input)
