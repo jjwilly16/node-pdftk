@@ -22,7 +22,7 @@ const pdftk = require('node-pdftk');
 
 ## Usage ##
 
-> Fill a form
+#### Fill a form ####
 
 ```javascript
 pdftk
@@ -42,7 +42,7 @@ pdftk
     });
 ```
 
-> Catenate pages
+#### Concatenate pages ####
 
 ```javascript
 pdftk
@@ -60,7 +60,7 @@ pdftk
     });
 ```
 
-> Stamp page
+#### Stamp page ####
 
 ```javascript
 pdftk
@@ -96,6 +96,15 @@ bin | Path to your PdfTk executable | String | 'pdftk'
 Promise | Promise library to implement | Object | Promise
 ignoreWarnings | Ignore PdfTk warnings. Useful with huge PDF files | Boolean | False
 
+## Configuring your PdfTk path ##
+
+If you need to configure a path to your PdfTk executable, you have a couple of options:
+
+1. Set the **bin** option with the **configure** method (see the **options** section above).
+2. Set an environmental variable named **PDFTK_PATH**.
+
+The **bin** option takes precedence over everything, followed by the environmental variable, and will fall back to 'pdftk' if those are not set.
+
 ## How it works ##
 
 All instances must begin with the **.input** method and end with the **.output** method.
@@ -104,13 +113,13 @@ The **.input** method will accept a buffer, file path, or an array of buffer/fil
 
 Any method called after input will simply add on commands. There is a certain amount of responsibility in the user's hands to make sure the commands will work properly in the order you call them. For example, you cannot call *.fillForm().stamp()*. Read the [PDFtk docs](https://www.pdflabs.com/docs/pdftk-man-page/) to learn more.
 
-The **.output** method simply executes the command and spits out the stdout either as a buffer or to a file.
+The **.output** method simply executes the command and returns a promise that resolves the stdout as a buffer (you can also write to disk as well with a file path argument).
 
 - **Note:** - The output method is not needed for all methods (e.g. burst, unpackFiles) - it is internally called with those.
 
 ## More Examples ##
 
-> Express example - render directly in browser
+#### Express example - render directly in browser ####
 
 ```javascript
 app.get('./file.pdf', (req, res, next) => {
@@ -127,7 +136,7 @@ app.get('./file.pdf', (req, res, next) => {
 });
 ```
 
-> Input a buffer, output a file and a buffer
+#### Input a buffer, output a file and a buffer ####
 
 ```javascript
 pdftk
@@ -141,7 +150,7 @@ pdftk
     });
 ```
 
-> Useful chaining
+#### Useful chaining ####
 
 ```javascript
 pdftk
@@ -165,9 +174,9 @@ pdftk
 
 ## Testing ##
 
-> The tests are a work in progress
+> The tests are a work in progress (feel free to submit pull requests)
 
-Because of the small differences with pdfs being generated across OS platforms, a lot of the test files are generated in the npm 'pretest' script with pdftk. If you have some sort of special setup where your pdftk path is not standard, you will want to edit that script in [pretest.js](./pretest.js).
+Because of the small differences with pdfs being generated across OS platforms, a lot of the test files are generated in the npm 'pretest' script with pdftk. If you have some sort of special setup where your pdftk path is not standard, you will want to edit that script in [pretest.js](./pretest.js) (it does check for the **PDFTK_PATH** environmental variable, though).
 
 Run tests with:
 
@@ -180,3 +189,9 @@ Test coverage with:
 ```bash
 npm run coverage
 ```
+
+## Contributing ##
+
+If you feel the library could be improved in any way, feel free to submit a pull request. I'm pretty laid back so I don't expect much, but all I ask is that you run the tests to make sure everything is kosher (my eslint rules may bite you in the ass there).
+
+Please keep in mind that this library is just a wrapper for something else, so try to avoid extending the functionality beyond what it is intended to do.

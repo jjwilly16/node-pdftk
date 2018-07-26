@@ -1077,12 +1077,15 @@ module.exports = {
         Object.defineProperties(PdfTk.prototype, {
             _Promise: {
                 value: options.Promise,
+                writable: true,
             },
             _bin: {
                 value: options.bin,
+                writable: true,
             },
             _ignoreWarnings: {
                 value: options.ignoreWarnings,
+                writable: true,
             },
         });
     },
