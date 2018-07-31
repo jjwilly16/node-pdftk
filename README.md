@@ -4,6 +4,8 @@
 
 A wrapper for [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) with streams and promises. All methods included.
 
+> **2.0 Note** - If you are planning on upgrading from version 1, you shouldn't have any problems unless you are subclassing the PdfTk class - it is no longer being directly exposed. All methods should behave the same as before.
+
 ## Requirements ##
 
 Make sure you have [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) installed and in your system path (or configure the plugin to point to your binary file - see options below).
