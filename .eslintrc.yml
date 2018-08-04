@@ -18,12 +18,12 @@ rules:
 
   # Should only have parentheses if arrow function has more than 1 argument
   arrow-parens:
-    - warn
+    - error
     - as-needed
 
   # Expects commas after functions
   comma-dangle:
-    - warn
+    - error
     - arrays: always
       objects: always
       imports: never
@@ -57,6 +57,9 @@ rules:
   # allow ~~
   no-bitwise: 0
 
+  # allow old buffer constructor
+  no-buffer-constructor: 0
+
   # console is allowed
   no-console: 0
 
@@ -74,7 +77,7 @@ rules:
 
   # allow multiple lines greater than 2
   no-multiple-empty-lines:
-    - warn
+    - error
     - max: 2
       maxEOF: 1
 
@@ -101,7 +104,7 @@ rules:
 
   # no unused vars, except for function arguments
   no-unused-vars:
-    - warn
+    - error
     - args: none
 
   # functions are allowed to be hoisted
@@ -121,9 +124,9 @@ rules:
   # arrow functions are not always necessary
   prefer-arrow-callback: 0
 
-  # when using let instead of const and no reassignment, only give a warning, no error
+  # when using let instead of const and no reassignment, only give a erroring, no error
   prefer-const:
-    - warn
+    - error
 
   # prefer using `hello, ${name}` vs 'hello, ' + name
   prefer-template: 0

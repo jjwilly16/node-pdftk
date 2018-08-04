@@ -1,6 +1,6 @@
 {
   "name": "node-pdftk",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "A wrapper for pdftk with streams and promises.",
   "main": "index.js",
   "repository": {
@@ -11,11 +11,12 @@
     "url": "https://github.com/jjwilly16/node-pdftk/issues"
   },
   "scripts": {
-    "pretest": "pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf && pdftk test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten && pdftk test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf && pdftk A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id && pdftk test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf && pdftk test/files/form.pdf generate_fdf output test/files/form.temp.fdf && pdftk test/files/document1.pdf background test/files/logo-multiple-pages.pdf output test/files/background.temp.pdf && pdftk test/files/document1.pdf multibackground test/files/logo-multiple-pages.pdf output test/files/multiBackground.temp.pdf",
-    "test": "./node_modules/.bin/mocha",
-    "posttest": "rimraf test/files/*.temp.*",
-    "coverage": "node_modules/.bin/nyc --reporter=html --reporter=text npm run test",
-    "docs": "jsdoc -c conf.json"
+    "pretest": "npm run clean && node pretest",
+    "test": "mocha test/*.spec.js",
+    "posttest": "npm run clean",
+    "coverage": "nyc --reporter=html --reporter=text npm run test",
+    "docs": "jsdoc -c conf.json",
+    "clean": "rimraf test/files/*.temp.*"
   },
   "keywords": [
     "pdftk",
@@ -27,6 +28,11 @@
   ],
   "author": "Justin Williamson <jjwilly1984@gmail.com>",
   "license": "MIT",
+  "nyc": {
+    "include": [
+      "index.js"
+    ]
+  },
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.19.1",

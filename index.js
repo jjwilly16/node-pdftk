@@ -17,99 +17,115 @@ class PdfTk {
      * @param {Array} [tmpFiles] - Array of temp files that have been created while initializing the constructor.
      * @returns {Object} PdfTk class instance.
      */
-    constructor(src, tmpFiles) {
+    constructor(src) {
 
-        /**
-         * @member
-         * @type {Array}
-         */
-        this.src = src;
+        try {
 
-        /**
-         * @member
-         * @type {Array}
-         */
-        this.tmpFiles = tmpFiles || [];
+            /**
+             * Promise library to use
+             * @member
+             * @type {Object}
+             */
+            this._Promise = this._Promise || Promise;
 
-        /**
-         * @member
-         * @type {String}
-         */
-        this.command = 'pdftk';
+            /**
+             * PdfTk binary path
+             * @member
+             * @type {String}
+             */
+            this._bin = this._bin || process.env.PDFTK_PATH || 'pdftk';
 
-        /**
-         * @member
-         * @type {Array}
-         */
-        this.args = [].concat(this.src);
+            /**
+             * Allows the plugin to ignore the PDFTK warnings. Useful with huge PDF files.
+             * @member
+             * @type {Boolean}
+             */
+            this._ignoreWarnings = this._ignoreWarnings || false;
 
-        /**
-         * @member
-         * @type {Array}
-         */
-        this.postArgs = [];
+            const input = [];
 
-        /**
-         * @member
-         * @private
-         * @type {Boolean}
-         */
-        this._ignoreWarnings = false;
+            /**
+             * @member
+             * @type {Array}
+             */
+            this.tmpFiles = [];
 
-        return this;
-    }
+            /**
+             * Write a temp file and save the path for deletion later.
+             * @private
+             * @function
+             * @param {Object} srcFile - Buffer to be written as a temp file.
+             * @returns {String} Path of the newly created temp file.
+             */
+            const writeTempFile = srcFile => {
+                const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
+                const uniqueId = crypto.randomBytes(16).toString('hex');
+                const tmpFile = `${tmpPath}${uniqueId}.pdf`;
+                fs.writeFileSync(tmpFile, srcFile);
+                this.tmpFiles.push(tmpFile);
+                return tmpFile;
+            };
 
-    /**
-     * Input files and initialize plugin.
-     * @static
-     * @public
-     * @param {String|Array} src - Source files to input.
-     * @returns {Object} PdfTk class instance.
-     */
-    static input(src) {
+            /**
+             * Make sure input src is an array
+             */
+            src = Array.isArray(src) ? src : [
+                src,
+            ];
 
-        const input = [];
-        const tmpFiles = [];
-
-        /**
-         * Write a temp file and save the path for deletion later.
-         * @private
-         * @function
-         * @param {Object} srcFile - Buffer to be written as a temp file.
-         * @returns {String} Path of the newly created temp file.
-         */
-        function writeTempFile(srcFile) {
-            const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
-            const uniqueId = crypto.randomBytes(16).toString('hex');
-            const tmpFile = `${tmpPath}${uniqueId}.pdf`;
-            fs.writeFileSync(tmpFile, srcFile);
-            tmpFiles.push(tmpFile);
-            return tmpFile;
-        }
-
-        src = Array.isArray(src) ? src : [
-            src,
-        ];
-
-        for (const srcFile of src) {
-            if (Buffer.isBuffer(srcFile)) {
-                input.push(writeTempFile(srcFile));
-            } else if (PdfTk.isObject(srcFile)) {
-                for (const handle in srcFile) {
-                    if (srcFile.hasOwnProperty(handle)) {
-                        if (Buffer.isBuffer(srcFile[handle])) {
-                            input.push(`${handle}=${writeTempFile(srcFile[handle])}`);
-                        } else {
-                            input.push(`${handle}=${srcFile[handle]}`);
+            /**
+             * Loop through src and push to input array
+             */
+            for (const srcFile of src) {
+                if (Buffer.isBuffer(srcFile)) {
+                    input.push(writeTempFile(srcFile));
+                } else if (PdfTk.isObject(srcFile)) {
+                    for (const handle in srcFile) {
+                        /* istanbul ignore else  */
+                        if (srcFile.hasOwnProperty(handle)) {
+                            if (Buffer.isBuffer(srcFile[handle])) {
+                                input.push(`${handle}=${writeTempFile(srcFile[handle])}`);
+                            } else {
+                                input.push(`${handle}=${srcFile[handle]}`);
+                            }
                         }
                     }
+                } else {
+                    input.push(srcFile);
                 }
-            } else {
-                input.push(srcFile);
             }
+
+            /**
+             * @member
+             * @type {Array}
+             */
+            this.src = input;
+
+            /**
+             * @member
+             * @type {Array}
+             */
+            this.args = [].concat(this.src);
+
+            /**
+             * @member
+             * @type {Array}
+             */
+            this.postArgs = [];
+
+            /**
+             * @member
+             * @private
+             * @type {Boolean}
+             */
+            this._ignoreWarnings = false;
+
+        } catch (err) {
+            this.error = err;
         }
 
-        return new PdfTk(input, tmpFiles);
+        return this;
+
     }
 
     /**
@@ -138,12 +154,26 @@ class PdfTk {
      * Returns a buffer from a file.
      * @static
      * @public
-     * @param {String|Buffer} file - File to buffer.
-     * @returns {Buffer} Buffered file.
+     * @param {(String|Buffer)} file - File to buffer.
+     * @returns {Object} Buffered file.
      */
-    static toBuffer(file) {
+    static fileToBuffer(file) {
         file = PdfTk.isString(file) ? fs.readFileSync(file) : file;
         return file;
+    }
+
+    /**
+     * Returns a buffer from a string.
+     * @static
+     * @public
+     * @param {(String|Buffer)} str - String to buffer.
+     * @returns {Object} Buffered string.
+     */
+    static stringToBuffer(str) {
+        if (Buffer.from) {
+            return Buffer.from(str);
+        }
+        return new Buffer(str);
     }
 
     /**
@@ -156,7 +186,7 @@ class PdfTk {
      */
     static generateFdfFromJSON(data) {
 
-        const header = Buffer.from(`
+        const header = PdfTk.stringToBuffer(`
             %FDF-1.2\n
             ${String.fromCharCode(226) + String.fromCharCode(227) + String.fromCharCode(207) + String.fromCharCode(211)}\n
             1 0 obj\n
@@ -166,34 +196,35 @@ class PdfTk {
             /Fields [\n
         `);
 
-        let body = Buffer.from('');
+        let body = PdfTk.stringToBuffer('');
 
         for (const prop in data) {
+            /* istanbul ignore else  */
             if (data.hasOwnProperty(prop)) {
                 body = Buffer.concat([
                     body,
-                    Buffer.from('<<\n/T ('),
+                    PdfTk.stringToBuffer('<<\n/T ('),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(prop, 'binary'),
+                    PdfTk.stringToBuffer(prop, 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(')\n/V('),
+                    PdfTk.stringToBuffer(')\n/V('),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(data[prop], 'binary'),
+                    PdfTk.stringToBuffer(data[prop], 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
-                    Buffer.from(')\n>>\n'),
+                    PdfTk.stringToBuffer(')\n>>\n'),
                 ]);
             }
         }
 
-        const footer = Buffer.from(`
+        const footer = PdfTk.stringToBuffer(`
             ]\n
             >>\n
             >>\n
@@ -224,12 +255,13 @@ class PdfTk {
     static generateInfoFromJSON(data) {
         const info = [];
         for (const prop in data) {
+            /* istanbul ignore else  */
             if (data.hasOwnProperty(prop)) {
-                const begin = Buffer.from('InfoBegin\nInfoKey: ');
-                const key = Buffer.from(prop);
-                const newline = Buffer.from('\nInfoValue: ');
-                const value = Buffer.from(data[prop]);
-                const newline2 = Buffer.from('\n');
+                const begin = PdfTk.stringToBuffer('InfoBegin\nInfoKey: ');
+                const key = PdfTk.stringToBuffer(prop);
+                const newline = PdfTk.stringToBuffer('\nInfoValue: ');
+                const value = PdfTk.stringToBuffer(data[prop]);
+                const newline2 = PdfTk.stringToBuffer('\n');
                 info.push(begin, key, newline, value, newline2);
             }
         }
@@ -241,15 +273,13 @@ class PdfTk {
      * @private
      * @param {String} command - Command to create.
      * @param {String|Buffer} file - Stdin file.
-     * @returns {Object} PdfTk class instance.
      */
     _commandWithStdin(command, file) {
-        this.stdin = PdfTk.toBuffer(file);
+        this.stdin = PdfTk.fileToBuffer(file);
         this.args.push(
             command,
             '-'
         );
-        return this;
     }
 
     /**
@@ -257,11 +287,11 @@ class PdfTk {
      * @private
      */
     _cleanUpTempFiles() {
-        if (this.tmpFiles.length) {
-            for (let i = this.tmpFiles.length - 1; i >= 0; i--) {
-                const tmpFile = this.tmpFiles[i];
-                this.tmpFiles.splice(i, 1);
-                fs.unlinkSync(tmpFile);
+        while (this.tmpFiles.length > 0) {
+            try {
+                fs.unlinkSync(this.tmpFiles.pop());
+            } catch (err) {
+                /* keep going */
             }
         }
     }
@@ -275,64 +305,78 @@ class PdfTk {
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
     output(writeFile, outputDest, needsOutput = true) {
-        return new Promise((resolve, reject) => {
-            if (needsOutput) {
-                this.args.push(
-                    'output',
-                    outputDest || '-'
-                );
-            }
+        return new this._Promise((resolve, reject) => {
 
-            this.args = this.args.concat(this.postArgs);
-
-            const child = spawn(this.command, this.args);
-
-            const result = [];
-
-            child.stderr.on('data', data => {
-                if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
-                    return reject(data.toString('utf8'));
-                }
-            });
-
-            child.on('error', e => {
-                if (e.code === 'ENOENT') {
-                    return reject(new Error(`
-                    pdftk was called but is not installed on your system.
-                    Install it here: https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/
-                    `));
-                }
-                return reject(e);
-            });
-
-            child.stdout.on('data', data => result.push(Buffer.from(data)));
-
-            child.on('close', code => {
-
+            if (this.error) {
                 this._cleanUpTempFiles();
-
-                if (code === 0) {
-                    const output = Buffer.concat(result);
-                    if (writeFile) {
-                        return fs.writeFile(writeFile, output, err => {
-                            if (err) return reject(err);
-                            return resolve(output);
-                        });
-                    }
-                    return resolve(output);
-                }
-                return reject(code);
-            });
-
-            if (this.stdin) {
-                child.stdin.write(this.stdin);
-                child.stdin.end();
+                return reject(this.error);
             }
+
+            try {
+                if (needsOutput) {
+                    this.args.push(
+                        'output',
+                        outputDest || '-'
+                    );
+                }
+
+                this.args = this.args.concat(this.postArgs);
+
+                const child = spawn(this._bin, this.args);
+
+                const result = [];
+
+                child.stderr.on('data', data => {
+                    if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
+                        this._cleanUpTempFiles();
+                        return reject(data.toString('utf8'));
+                    }
+                });
+
+                child.on('error', e => {
+                    this._cleanUpTempFiles();
+                    if (e.code === 'ENOENT') {
+                        return reject(new Error(`
+                        pdftk was called but is not installed on your system.
+                        Install it here: https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/
+                    `));
+                    }
+                    return reject(e);
+                });
+
+                child.stdout.on('data', data => result.push(PdfTk.stringToBuffer(data)));
+
+                child.on('close', code => {
+
+                    this._cleanUpTempFiles();
+
+                    if (code === 0) {
+                        const output = Buffer.concat(result);
+                        if (writeFile) {
+                            return fs.writeFile(writeFile, output, err => {
+                                if (err) return reject(err);
+                                return resolve(output);
+                            });
+                        }
+                        return resolve(output);
+                    }
+                    return reject(code);
+                });
+
+                if (this.stdin) {
+                    child.stdin.write(this.stdin);
+                    child.stdin.end();
+                }
+            } catch (err) {
+                this._cleanUpTempFiles();
+                return reject(err);
+            }
+
         });
     }
 
     /**
-     * Assembles ("catenates") pages from input PDFs to create a new PDF.
+     * Assembles ("concatenate") pages from input PDFs to create a new PDF.
      * @public
      * @chainable
      * @param {String|Array} [catCommand] - Page ranges for cat method.
@@ -340,12 +384,17 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-cat}
      */
     cat(catCommand) {
-        this.args.push('cat');
-        if (catCommand) {
-            catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
-            for (const cmd of catCommand) {
-                this.args.push(cmd);
+        if (this.error) return this;
+        try {
+            this.args.push('cat');
+            if (catCommand) {
+                catCommand = Array.isArray(catCommand) ? catCommand : catCommand.split(' ');
+                for (const cmd of catCommand) {
+                    this.args.push(cmd);
+                }
             }
+        } catch (err) {
+            this.error = err;
         }
         return this;
     }
@@ -359,12 +408,17 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-shuffle}
      */
     shuffle(shuffleCommand) {
-        this.args.push('shuffle');
-        if (shuffleCommand) {
-            shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
-            for (const cmd of shuffleCommand) {
-                this.args.push(cmd);
+        if (this.error) return this;
+        try {
+            this.args.push('shuffle');
+            if (shuffleCommand) {
+                shuffleCommand = Array.isArray(shuffleCommand) ? shuffleCommand : shuffleCommand.split(' ');
+                for (const cmd of shuffleCommand) {
+                    this.args.push(cmd);
+                }
             }
+        } catch (err) {
+            this.error = err;
         }
         return this;
     }
@@ -373,12 +427,17 @@ class PdfTk {
      * Splits a single PDF into individual pages.
      * @public
      * @param {String} [outputOptions] - Burst output options for naming conventions.
-     * @returns {Object} PdfTk class instance.
+     * @returns {Object} Promise callback
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst}
      */
     burst(outputOptions) {
-        this.args.push('burst');
+        if (this.error) return this;
         const hasOutput = !!outputOptions;
+        try {
+            this.args.push('burst');
+        } catch (err) {
+            this.error = err;
+        }
         return this.output(null, (outputOptions || null), hasOutput);
     }
 
@@ -391,12 +450,17 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-rotate}
      */
     rotate(rotateCommand) {
-        this.args.push('rotate');
-        if (rotateCommand) {
-            rotateCommand = Array.isArray(rotateCommand) ? rotateCommand : rotateCommand.split(' ');
-            for (const cmd of rotateCommand) {
-                this.args.push(cmd);
+        if (this.error) return this;
+        try {
+            this.args.push('rotate');
+            if (rotateCommand) {
+                rotateCommand = Array.isArray(rotateCommand) ? rotateCommand : rotateCommand.split(' ');
+                for (const cmd of rotateCommand) {
+                    this.args.push(cmd);
+                }
             }
+        } catch (err) {
+            this.error = err;
         }
         return this;
     }
@@ -409,7 +473,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-generate-fdf}
      */
     generateFdf() {
-        this.args.push('generate_fdf');
+        if (this.error) return this;
+        try {
+            this.args.push('generate_fdf');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -422,8 +491,14 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-fill-form}
      */
     fillForm(data) {
-        data = PdfTk.isString(data) ? data : PdfTk.generateFdfFromJSON(data);
-        return this._commandWithStdin('fill_form', data);
+        if (this.error) return this;
+        try {
+            data = PdfTk.isString(data) ? data : PdfTk.generateFdfFromJSON(data);
+            this._commandWithStdin('fill_form', data);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -435,7 +510,13 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-background}
      */
     background(file) {
-        return this._commandWithStdin('background', file);
+        if (this.error) return this;
+        try {
+            this._commandWithStdin('background', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -447,7 +528,13 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-multibackground}
      */
     multiBackground(file) {
-        return this._commandWithStdin('multibackground', file);
+        if (this.error) return this;
+        try {
+            this._commandWithStdin('multibackground', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -459,7 +546,13 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-stamp}
      */
     stamp(file) {
-        return this._commandWithStdin('stamp', file);
+        if (this.error) return this;
+        try {
+            this._commandWithStdin('stamp', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -471,7 +564,13 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-multistamp}
      */
     multiStamp(file) {
-        return this._commandWithStdin('multistamp', file);
+        if (this.error) return this;
+        try {
+            this._commandWithStdin('multistamp', file);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -482,7 +581,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data}
      */
     dumpData() {
-        this.args.push('dump_data');
+        if (this.error) return this;
+        try {
+            this.args.push('dump_data');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -494,7 +598,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-utf8}
      */
     dumpDataUtf8() {
-        this.args.push('dump_data_utf8');
+        if (this.error) return this;
+        try {
+            this.args.push('dump_data_utf8');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -506,7 +615,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-fields}
      */
     dumpDataFields() {
-        this.args.push('dump_data_fields');
+        if (this.error) return this;
+        try {
+            this.args.push('dump_data_fields');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -518,7 +632,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-fields-utf8}
      */
     dumpDataFieldsUtf8() {
-        this.args.push('dump_data_fields_utf8');
+        if (this.error) return this;
+        try {
+            this.args.push('dump_data_fields_utf8');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -530,7 +649,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-dump-data-annots}
      */
     dumpDataAnnots() {
-        this.args.push('dump_data_annots');
+        if (this.error) return this;
+        try {
+            this.args.push('dump_data_annots');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -543,8 +667,14 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-update-info}
      */
     updateInfo(data) {
-        data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
-        return this._commandWithStdin('update_info', data);
+        if (this.error) return this;
+        try {
+            data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
+            this._commandWithStdin('update_info', data);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -556,8 +686,14 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-update-info-utf8}
      */
     updateInfoUtf8(data) {
-        data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
-        return this._commandWithStdin('update_info_utf8', data);
+        if (this.error) return this;
+        try {
+            data = PdfTk.isString(data) ? data : PdfTk.generateInfoFromJSON(data);
+            this._commandWithStdin('update_info_utf8', data);
+        } catch (err) {
+            this.error = err;
+        }
+        return this;
     }
 
     /**
@@ -569,17 +705,20 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-attach} for more information.
      */
     attachFiles(files) {
+        if (this.error) return this;
+        try {
+            files = Array.isArray(files) ? files : [
+                files,
+            ];
 
-        files = Array.isArray(files) ? files : [
-            files,
-        ];
+            this.args.push('attach_files');
 
-        this.args.push('attach_files');
-
-        for (const file of files) {
-            this.args.push(file);
+            for (const file of files) {
+                this.args.push(file);
+            }
+        } catch (err) {
+            this.error = err;
         }
-
         return this;
     }
 
@@ -592,8 +731,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-unpack} for more information.
      */
     unpackFiles(outputDir) {
-
-        this.args.push('unpack_files');
+        if (this.error) return this;
+        try {
+            this.args.push('unpack_files');
+        } catch (err) {
+            this.error = err;
+        }
         return this.output(null, outputDir);
 
     }
@@ -607,10 +750,15 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-attach}
      */
     toPage(pageNo) {
-        this.args.push(
-            'to_page',
-            pageNo
-        );
+        if (this.error) return this;
+        try {
+            this.args.push(
+                'to_page',
+                pageNo
+            );
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -622,7 +770,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-flatten}
      */
     flatten() {
-        this.postArgs.push('flatten');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('flatten');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -634,7 +787,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-need-appearances}
      */
     needAppearances() {
-        this.postArgs.push('need_appearances');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('need_appearances');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -646,7 +804,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-compress}
      */
     compress() {
-        this.postArgs.push('compress');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('compress');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -658,7 +821,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-compress}
      */
     uncompress() {
-        this.postArgs.push('uncompress');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('uncompress');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -670,7 +838,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-keep-id}
      */
     keepFirstId() {
-        this.postArgs.push('keep_first_id');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('keep_first_id');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -682,7 +855,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-keep-id}
      */
     keepFinalId() {
-        this.postArgs.push('keep_final_id');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('keep_final_id');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -694,7 +872,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-drop-xfa}
      */
     dropXfa() {
-        this.postArgs.push('drop_xfa');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('drop_xfa');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -706,7 +889,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-verbose}
      */
     verbose() {
-        this.postArgs.push('verbose');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('verbose');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -718,7 +906,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-ask}
      */
     dontAsk() {
-        this.postArgs.push('dont_ask');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('dont_ask');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -730,7 +923,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-ask}
      */
     doAsk() {
-        this.postArgs.push('do_ask');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('do_ask');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -743,10 +941,15 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-input-pw}
      */
     inputPw(password) {
-        this.args.push(
-            'input_pw',
-            password
-        );
+        if (this.error) return this;
+        try {
+            this.args.push(
+                'input_pw',
+                password
+            );
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -759,10 +962,15 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-user-pw}
      */
     userPw(password) {
-        this.postArgs.push(
-            'user_pw',
-            password
-        );
+        if (this.error) return this;
+        try {
+            this.postArgs.push(
+                'user_pw',
+                password
+            );
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -775,10 +983,15 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-owner-pw}
      */
     ownerPw(password) {
-        this.postArgs.push(
-            'owner_pw',
-            password
-        );
+        if (this.error) return this;
+        try {
+            this.postArgs.push(
+                'owner_pw',
+                password
+            );
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -792,12 +1005,16 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-perms}
      */
     allow(perms) {
-        this.postArgs.push('allow');
-        if (perms) {
-            perms = Array.isArray(perms) ? perms.join(' ') : perms;
-            this.postArgs.push(perms);
+        if (this.error) return this;
+        try {
+            this.postArgs.push('allow');
+            if (perms) {
+                perms = Array.isArray(perms) ? perms.join(' ') : perms;
+                this.postArgs.push(perms);
+            }
+        } catch (err) {
+            this.error = err;
         }
-
         return this;
     }
 
@@ -809,7 +1026,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-strength}
      */
     encrypt40Bit() {
-        this.postArgs.push('encrypt_40bit');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('encrypt_40bit');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -821,7 +1043,12 @@ class PdfTk {
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-strength}
      */
     encrypt128Bit() {
-        this.postArgs.push('encrypt_128bit');
+        if (this.error) return this;
+        try {
+            this.postArgs.push('encrypt_128bit');
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 
@@ -832,9 +1059,34 @@ class PdfTk {
      * @returns {Object} PdfTk class instance.
      */
     ignoreWarnings() {
-        this._ignoreWarnings = true;
+        if (this.error) return this;
+        try {
+            this._ignoreWarnings = true;
+        } catch (err) {
+            this.error = err;
+        }
         return this;
     }
 }
 
-module.exports = PdfTk;
+// module.exports = PdfTk;
+
+module.exports = {
+    input: file => new PdfTk(file),
+    configure: options => {
+        Object.defineProperties(PdfTk.prototype, {
+            _Promise: {
+                value: options.Promise,
+                writable: true,
+            },
+            _bin: {
+                value: options.bin,
+                writable: true,
+            },
+            _ignoreWarnings: {
+                value: options.ignoreWarnings,
+                writable: true,
+            },
+        });
+    },
+};
