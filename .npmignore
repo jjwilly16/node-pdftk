@@ -10,3 +10,4 @@ test
 conf.json
 .eslintignore
 .eslintrc.yml
+pretest.js
