@@ -308,7 +308,7 @@ class PdfTk {
      * @public
      * @param {String} writeFile - Path to the output file to write from stdout. If used with the "outputDest" parameter, two files will be written.
      * @param {String} [outputDest] - The output file to write without stdout. When present, the returning promise will not contain the output buffer. If used with the "writeFile" parameter, two files will be written.
-     * @param {Boolean} [needsOutput=true] - Optional boolean used to disclude the 'output' argument (only used for specific methods).
+     * @param {Boolean} [needsOutput=true] - Optional boolean used to exclude the 'output' argument (only used for specific methods).
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
     output(writeFile, outputDest, needsOutput = true) {
