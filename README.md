@@ -97,6 +97,7 @@ Name | Description | Type | Default Value
 bin | Path to your PdfTk executable | String | 'pdftk'
 Promise | Promise library to implement | Object | Promise
 ignoreWarnings | Ignore PdfTk warnings. Useful with huge PDF files | Boolean | False
+tempDir | changes the directory where temporary files are stored | String | libPath + './node-pdftk-tmp/')
 
 ## Configuring your PdfTk path ##
 
