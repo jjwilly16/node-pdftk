@@ -47,7 +47,7 @@ class PdfTk {
              * @member
              * @type {String}
              */
-            this._tempDir = this._tempDir || './node-pdftk-tmp/';
+            this._tempDir = this._tempDir || path.join(__dirname,'./node-pdftk-tmp/');
 
             const input = [];
 
