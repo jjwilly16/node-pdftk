@@ -47,7 +47,8 @@ class PdfTk {
              * @member
              * @type {String}
              */
-            this._tempDir = this._tempDir || path.join(__dirname,'./node-pdftk-tmp/');
+            this._tempDir = this._tempDir || path.join(__dirname, './node-pdftk-tmp/');
+
 
             const input = [];
 
@@ -65,9 +66,9 @@ class PdfTk {
              * @returns {String} Path of the newly created temp file.
              */
             const writeTempFile = srcFile => {
-                const tmpPath = path.join(__dirname, this._tempDir);
+                const tmpPath = this._tempDir;
                 const uniqueId = crypto.randomBytes(16).toString('hex');
-                const tmpFile = `${tmpPath}${uniqueId}.pdf`;
+                const tmpFile = path.normalize(`${tmpPath}/${uniqueId}.pdf`);
                 fs.writeFileSync(tmpFile, srcFile);
                 this.tmpFiles.push(tmpFile);
                 return tmpFile;
@@ -1095,9 +1096,9 @@ module.exports = {
                 writable: true,
             },
             _tempDir: {
-               value: options.tempDir,
-               writable: true,
-           },
+                value: options.tempDir,
+                writable: true,
+            },
         });
     },
 };
