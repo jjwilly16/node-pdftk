@@ -169,11 +169,11 @@ class PdfTk {
      * @param {(String|Buffer)} str - String to buffer.
      * @returns {Object} Buffered string.
      */
-    static stringToBuffer(str) {
+    static stringToBuffer(str, encoding = 'utf8') {
         if (Buffer.from) {
-            return Buffer.from(str);
+            return Buffer.from(str, encoding);
         }
-        return new Buffer(str);
+        return new Buffer(str, encoding);
     }
 
     /**
