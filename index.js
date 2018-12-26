@@ -113,13 +113,6 @@ class PdfTk {
              */
             this.postArgs = [];
 
-            /**
-             * @member
-             * @private
-             * @type {Boolean}
-             */
-            this._ignoreWarnings = false;
-
         } catch (err) {
             this.error = err;
         }
@@ -327,7 +320,7 @@ class PdfTk {
                 const result = [];
 
                 child.stderr.on('data', data => {
-                    if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('warning'))) {
+                    if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('error'))) {
                         this._cleanUpTempFiles();
                         return reject(data.toString('utf8'));
                     }
