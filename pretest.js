@@ -21,6 +21,7 @@ function sequentialPromise(operations) {
 
 const commands = [
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf',
+    'test/files/form.pdf fill_form test/files/formwithnumber.fdf output test/files/filledformwithnumber.temp.pdf',
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten',
     'test/files/form.pdf generate_fdf output test/files/form.temp.fdf',
     'test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf',

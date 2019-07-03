@@ -25,6 +25,22 @@ describe('fillForm', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should fill a form without flattening it with a number input', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledformwithnumber.temp.pdf'));
+        const input = path.join(__dirname, './files/form.pdf');
+
+        return pdftk
+            .input(input)
+            .fillForm({
+                name: 123,
+                email: 'test@email.com',
+            })
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => expect(err).to.be.null);
+    });
+
     it('should fill a form without flattening it with a buffer input', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/filledform.temp.pdf'));
