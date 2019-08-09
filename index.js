@@ -42,6 +42,14 @@ class PdfTk {
              */
             this._ignoreWarnings = this._ignoreWarnings || false;
 
+            /**
+             * Allows the plugin to change where the temp file is written.
+             * @member
+             * @type {String}
+             */
+            this._tempDir = this._tempDir || path.join(__dirname, './node-pdftk-tmp/');
+
+
             const input = [];
 
             /**
@@ -58,9 +66,9 @@ class PdfTk {
              * @returns {String} Path of the newly created temp file.
              */
             const writeTempFile = srcFile => {
-                const tmpPath = path.join(__dirname, './node-pdftk-tmp/');
+                const tmpPath = this._tempDir;
                 const uniqueId = crypto.randomBytes(16).toString('hex');
-                const tmpFile = `${tmpPath}${uniqueId}.pdf`;
+                const tmpFile = path.normalize(`${tmpPath}/${uniqueId}.pdf`);
                 fs.writeFileSync(tmpFile, srcFile);
                 this.tmpFiles.push(tmpFile);
                 return tmpFile;
@@ -294,7 +302,7 @@ class PdfTk {
      * @public
      * @param {String} writeFile - Path to the output file to write from stdout. If used with the "outputDest" parameter, two files will be written.
      * @param {String} [outputDest] - The output file to write without stdout. When present, the returning promise will not contain the output buffer. If used with the "writeFile" parameter, two files will be written.
-     * @param {Boolean} [needsOutput=true] - Optional boolean used to disclude the 'output' argument (only used for specific methods).
+     * @param {Boolean} [needsOutput=true] - Optional boolean used to exclude the 'output' argument (only used for specific methods).
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
     output(writeFile, outputDest, needsOutput = true) {
@@ -1077,6 +1085,10 @@ module.exports = {
             },
             _ignoreWarnings: {
                 value: options.ignoreWarnings,
+                writable: true,
+            },
+            _tempDir: {
+                value: options.tempDir,
                 writable: true,
             },
         });
