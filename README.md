@@ -88,6 +88,7 @@ pdftk.configure({
     bin: '/your/path/to/pdftk/bin',
     Promise: require('bluebird'),
     ignoreWarnings: true,
+    tempDir: path.join(__dirname, './your/custom/temp/dir')
 });
 ```
 
@@ -97,7 +98,7 @@ Name | Description | Type | Default Value
 bin | Path to your PdfTk executable | String | 'pdftk'
 Promise | Promise library to implement | Object | Promise
 ignoreWarnings | Ignore PdfTk warnings. Useful with huge PDF files | Boolean | False
-tempDir | changes the directory where temporary files are stored | String | libPath + './node-pdftk-tmp/')
+tempDir | Changes the directory where temporary files are stored. MUST BE ABSOLUTE PATH. Use the [path](https://nodejs.org/docs/latest/api/path.html) module. | String | libPath + './node-pdftk-tmp/')
 
 ## Configuring your PdfTk path ##
 
