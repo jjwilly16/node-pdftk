@@ -16,7 +16,10 @@
     "posttest": "npm run clean",
     "coverage": "nyc --reporter=html --reporter=text npm run test",
     "docs": "jsdoc -c conf.json",
-    "clean": "rimraf test/files/*.temp.*"
+    "clean": "rimraf test/files/*.temp.*",
+    "bump-patch": "npm version patch && git push origin master && git push origin --tags",
+    "bump-minor": "npm version minor && git push origin master && git push origin --tags",
+    "bump-major": "npm version major && git push origin master && git push origin --tags"
   },
   "keywords": [
     "pdftk",
