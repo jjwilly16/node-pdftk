@@ -1009,8 +1009,8 @@ class PdfTk {
         try {
             this.postArgs.push('allow');
             if (perms) {
-                perms = Array.isArray(perms) ? perms.join(' ') : perms;
-                this.postArgs.push(perms);
+                perms = Array.isArray(perms) ? perms : perms.split(' ');
+                this.postArgs = this.postArgs.concat(perms);
             }
         } catch (err) {
             this.error = err;
