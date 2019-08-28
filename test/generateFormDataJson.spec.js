@@ -49,4 +49,18 @@ describe('generateFormDataJson', function () {
             .then(buffer => expect(pdftk.fdfToJson(buffer)).to.eql(testFile))
             .catch(err => expect(err).to.be.null);
     });
+
+    it('should throw and TypeError if the buffer is not an fdf', function () {
+
+        const input = path.join(__dirname, './files/form.pdf');
+
+        return pdftk
+            .input(input)
+            .output()
+            .then(buffer => pdftk.fdfToJson(buffer))
+            .catch(err => {
+                expect(err.name).to.equal('TypeError');
+                expect(err.message).to.equal('Function must be called on generated FDF output');
+            });
+    });
 });
