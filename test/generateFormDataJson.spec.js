@@ -9,81 +9,44 @@ const path = require('path');
 
 describe('generateFormDataJson', function () {
 
-    it('should generate a json file from a pdf with a string input', function () {
+    it('should generate a json file from the fdf of an unfilled pdf', function () {
 
-        const testFile = fs.readFileSync(path.join(__dirname, './files/form.json'));
+        const testFile = JSON.parse(fs.readFileSync(path.join(__dirname, './files/emptyform.json')));
         const input = path.join(__dirname, './files/form.pdf');
 
         return pdftk
             .input(input)
-            .generateFormDataJson()
+            .generateFdf()
             .output()
-            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .then(buffer => expect(pdftk.fdfToJson(buffer)).to.eql(testFile))
             .catch(err => expect(err).to.be.null);
     });
 
-    it('should generate an json file from a pdf with a buffer input', function () {
+    it('should generate an json file from the fdf of a filled pdf', function () {
 
-        const testFile = fs.readFileSync(path.join(__dirname, './files/form.json'));
-        const input = fs.readFileSync(path.join(__dirname, './files/form.pdf'));
+        const testFile = JSON.parse(fs.readFileSync(path.join(__dirname, './files/filledform.json')));
+        const input = fs.readFileSync(path.join(__dirname, './files/filledform.temp.pdf'));
 
         return pdftk
             .input(input)
-            .generateFormDataJson()
+            .generateFdf()
             .output()
-            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .then(buffer => {
+                expect(pdftk.fdfToJson(buffer)).to.deep.equal(testFile);
+            })
             .catch(err => expect(err).to.be.null);
     });
 
-    it('should write an output file through the output method', function () {
+    it('should generate an json file from the fdf of a number filled pdf', function () {
 
-        const testFile = fs.readFileSync(path.join(__dirname, './files/form.json'));
-        const input = path.join(__dirname, './files/form.pdf');
-        const output = path.join(__dirname, './files/output.temp.json');
+        const testFile = JSON.parse(fs.readFileSync(path.join(__dirname, './files/filledformwithnumber.json')));
+        const input = fs.readFileSync(path.join(__dirname, './files/filledformwithnumber.temp.pdf'));
 
         return pdftk
             .input(input)
-            .generateFormDataJson()
-            .output(output)
-            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
-            .then(() =>
-                new Promise((resolve, reject) => {
-                    let file;
-                    try {
-                        file = fs.readFileSync(output);
-                    } catch (err) {
-                        return reject(err);
-                    }
-                    return resolve(file);
-                })
-                    .then(buffer => expect(buffer.equals(testFile)).to.be.true))
+            .generateFdf()
+            .output()
+            .then(buffer => expect(pdftk.fdfToJson(buffer)).to.eql(testFile))
             .catch(err => expect(err).to.be.null);
     });
-
-    it('should catch an error if given a bad input path', function () {
-
-        const input = path.join(__dirname, './files/doesnotexist.pdf');
-
-        return pdftk
-            .input(input)
-            .generateFormDataJson()
-            .output()
-            .then(buffer => expect(buffer).to.be.null)
-            .catch(err => expect(err).to.not.be.null);
-    });
-
-    it('should catch an error if given a bad output path', function () {
-
-        const input = path.join(__dirname, './files/doesnotexist.pdf');
-        const output = path.join(__dirname, './path/does/not/exist.json');
-
-        return pdftk
-            .input(input)
-            .generateFormDataJson()
-            .output(output)
-            .then(buffer => expect(buffer).to.be.null)
-            .catch(err => expect(err).to.not.be.null);
-    });
-
-
 });
