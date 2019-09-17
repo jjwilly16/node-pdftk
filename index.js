@@ -1000,7 +1000,7 @@ class PdfTk {
      * @public
      * @chainable
      * @param {(String|String[])} [perms] - Permissions to set. Choices are: Printing, DegradedPrinting, ModifyContents,
-     * Assembly, CopyContents, ScreenReaders, ModifyAnnotations, FillIn, AllFeatures. Passing no arguments will disable all.
+     * Assembly, CopyContents, ScreenReaders, ModifyAnnotations, FillIn, AllFeatures. Passing no arguments will disable all. Either pass an array or a space-separated string.
      * @returns {Object} PdfTk class instance.
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-output-enc-perms}
      */
@@ -1009,8 +1009,8 @@ class PdfTk {
         try {
             this.postArgs.push('allow');
             if (perms) {
-                perms = Array.isArray(perms) ? perms.join(' ') : perms;
-                this.postArgs.push(perms);
+                perms = Array.isArray(perms) ? perms : perms.split(' ').map(i => i.trim());
+                this.postArgs = this.postArgs.concat(perms);
             }
         } catch (err) {
             this.error = err;
