@@ -328,7 +328,7 @@ class PdfTk {
                 const result = [];
 
                 child.stderr.on('data', data => {
-                    if (!(this._ignoreWarnings && data.toString().toLowerCase().includes('error'))) {
+                    if (!this._ignoreWarnings && data.toString().toLowerCase().includes('error')) {
                         this._cleanUpTempFiles();
                         return reject(data.toString('utf8'));
                     }
