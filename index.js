@@ -178,6 +178,39 @@ class PdfTk {
     }
 
     /**
+     * Creates JSON data from fdf buffer output.
+     * @static
+     * @public
+     * @param {Buffer} fdfBuffer - fdf buffer to transform to JSON.
+     * @returns {object} Fdf field data as a JSON.
+     */
+    static fdfToJson(fdfBuffer) {
+        try {
+            const fdfString = fdfBuffer.toString();
+            const fieldsString = fdfString.substring(
+                fdfString.lastIndexOf('/Fields ['),
+                fdfString.lastIndexOf(']')
+            );
+            const fdfJson = fieldsString.split('<<')
+                .filter(stringSplit => stringSplit.includes('/T') || stringSplit.includes('\V'))
+                .reduce((json, stringLine) => {
+                    // eslint-disable-next-line array-bracket-spacing
+                    let [, valueMatch, titleMatch, ] = stringLine.match(/\/V\s*([^\n\r]*)\s*\/T\s*([^\n\r]*)/);
+                    titleMatch = titleMatch.startsWith('(') ? titleMatch.substring(1) : titleMatch;
+                    titleMatch = titleMatch.endsWith(')') ? titleMatch.substring(0, titleMatch.length - 1) : titleMatch;
+                    valueMatch = valueMatch.startsWith('(') ? valueMatch.substring(1) : valueMatch;
+                    valueMatch = valueMatch.endsWith(')') ? valueMatch.substring(0, valueMatch.length - 1) : valueMatch;
+                    json[titleMatch] = valueMatch;
+                    return json;
+                }, {});
+            return fdfJson;
+        } catch (err) {
+            if (err instanceof TypeError) err.message = 'Function must be called on generated FDF output';
+            throw err;
+        }
+    }
+
+    /**
      * Creates fdf file from JSON input.
      * Converts input values to binary buffer, which seems to allow PdfTk to render utf-8 characters.
      * @static
@@ -1093,4 +1126,5 @@ module.exports = {
             },
         });
     },
+    fdfToJson: PdfTk.fdfToJson,
 };
