@@ -178,6 +178,19 @@ class PdfTk {
     }
 
     /**
+     * Sanitizes fdf input
+     * @statuc
+     * @public
+     * @param {String} str - String to sanitize
+     * @returns {String} Sanitized string
+     */
+    static sanitizeForFdf(str) {
+        return str
+            .replace(/\(/g, '\\(')
+            .replace(/\)/g, '\\)');
+    }
+
+    /**
      * Creates fdf file from JSON input.
      * Converts input values to binary buffer, which seems to allow PdfTk to render utf-8 characters.
      * @static
@@ -208,7 +221,7 @@ class PdfTk {
                 ]);
                 body = Buffer.concat([
                     body,
-                    PdfTk.stringToBuffer(prop.toString(), 'binary'),
+                    PdfTk.stringToBuffer(PdfTk.sanitizeForFdf(prop.toString()), 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,
@@ -216,7 +229,7 @@ class PdfTk {
                 ]);
                 body = Buffer.concat([
                     body,
-                    PdfTk.stringToBuffer(data[prop].toString(), 'binary'),
+                    PdfTk.stringToBuffer(PdfTk.sanitizeForFdf(data[prop].toString()), 'binary'),
                 ]);
                 body = Buffer.concat([
                     body,

@@ -135,6 +135,23 @@ describe('fillForm', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should escape single parenthesis', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledformescape.temp.pdf'));
+        const input = path.join(__dirname, './files/form.pdf');
+
+        return pdftk
+            .input(input)
+            .fillForm({
+                name: 'John Doe)',
+                email: 'test@email.com',
+            })
+            .flatten()
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => expect(err).to.be.null);
+    });
+
     it('should catch an error if given a bad input path', function () {
 
         const input = path.join(__dirname, './files/doesnotexist.pdf');
