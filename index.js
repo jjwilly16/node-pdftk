@@ -201,7 +201,7 @@ class PdfTk {
 
         for (const prop in data) {
             /* istanbul ignore else  */
-            if (data.hasOwnProperty(prop)) {
+            if (data.hasOwnProperty(prop) && data[prop] !== null && data[prop] !== undefined) {
                 body = Buffer.concat([
                     body,
                     PdfTk.stringToBuffer('<<\n/T ('),

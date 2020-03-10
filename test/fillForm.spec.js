@@ -118,6 +118,23 @@ describe('fillForm', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should ignore field if value is null or undefined', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledformempty.temp.pdf'));
+        const input = path.join(__dirname, './files/form.pdf');
+
+        return pdftk
+            .input(input)
+            .fillForm({
+                name: null,
+                email: undefined,
+            })
+            .flatten()
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => expect(err).to.be.null);
+    });
+
     it('should catch an error if given a bad input path', function () {
 
         const input = path.join(__dirname, './files/doesnotexist.pdf');
