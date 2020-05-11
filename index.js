@@ -260,6 +260,103 @@ class PdfTk {
     }
 
     /**
+     * Takes a pdftk info string and turns it into an object.
+     * @static
+     * @public
+     * @param {string} data
+     * @returns {Object} Key value pairs and arrays of info data.
+     */
+    static infoStringToObject(data) {
+        if (!data || !PdfTk.isString(data)) return null;
+        const KEY_DIVIDER = 'Begin';
+        const singleLines = data.split('\n');
+        let curKey = null;
+        const serialised = singleLines.reduce((acc, row) => {
+            const splitRow = row.split(KEY_DIVIDER);
+            //key could be Info, or Bookmark, or PageMedia, etc.
+            const key = splitRow[0];
+            //Key with -Begin- has encountered
+            if (row.indexOf(KEY_DIVIDER) > -1) {
+                //create a new index of data key if it does not exist yet
+                if (!acc.hasOwnProperty(key)) {
+                    curKey = key;
+                    acc[key] = [];
+                }
+                //a new row with 'Begin' always warants a new object to hold its values
+                acc[key].push({});
+                //and then return, as we don't add new entries at this point
+                return acc;
+            }
+            const container = acc[curKey];
+            const currentEntry = container[container.length - 1];
+            //contains the row minus the main key
+            const valueContainer = row.substring(curKey.length);
+
+            //check if current value is part of a parent key or a simple key value pair
+            if (valueContainer && row.substring(0, curKey.length) === curKey) {
+                const valueKey = valueContainer.split(':');
+                const key = valueKey.shift(); // valueKey[0] is always key
+                let value = valueKey.shift(); // valueKey[1] is always value
+                if (valueKey.length) {
+                    //if value contains ':' it got split as well, join remainder
+                    value = `${value}:${valueKey.join(':')}`;
+                }
+                currentEntry[key] = value.trim();
+            } else {
+                //item is not on key, and should just be added as is
+                const splitColon = row.split(':');
+                if (splitColon[1]) {
+                    acc[splitColon[0]] = splitColon[1].trim();
+                }
+            }
+
+            return acc;
+        }, {});
+
+        return serialised;
+    }
+    /**
+     * Creates a pdftk info string value from an object.
+     *
+     * @static
+     * @public
+     * @param {Object} data
+     * @returns {String} Concatenated string value which can be passed to pdftk
+     */
+    static infoObjectToString(data) {
+        if (!data || !PdfTk.isObject(data)) return null;
+        return Object.keys(data)
+            .reduce((acc, key) => {
+                const val = data[key];
+                //if value is array, split it and create a
+                //new string row with [key]Begin (BookmarkBegin,InfoBegin, etc.)
+                if (Array.isArray(val)) {
+                    const vals = val.reduce((acc, item) => {
+                        const innerValues = Object.keys(item).reduce(
+                            (innerAcc, innerKey, innerIndex) => {
+                                if (innerIndex === 0) {
+                                    innerAcc = `${innerAcc}\n${key}Begin`;
+                                }
+                                innerAcc = `${innerAcc}\n${key}${innerKey}: ${
+                                    item[innerKey]
+                                }`;
+                                return innerAcc;
+                            },
+                            ''
+                        );
+
+                        return `${acc}${innerValues}`;
+                    }, '');
+                    return `${acc}${vals}`;
+                }
+                // if not an array, take as is and add to accumulator with newline
+                // for instance; `NumberOfPages: 6`
+                return `${acc}\n${key}: ${val}`;
+            }, '')
+            .trim();
+    }
+
+    /**
      * Creates pdf info text file from JSON input.
      * @static
      * @public
@@ -267,19 +364,7 @@ class PdfTk {
      * @returns {Buffer} Info text file as a buffer.
      */
     static generateInfoFromJSON(data) {
-        const info = [];
-        for (const prop in data) {
-            /* istanbul ignore else  */
-            if (data.hasOwnProperty(prop)) {
-                const begin = PdfTk.stringToBuffer('InfoBegin\nInfoKey: ');
-                const key = PdfTk.stringToBuffer(prop.toString());
-                const newline = PdfTk.stringToBuffer('\nInfoValue: ');
-                const value = PdfTk.stringToBuffer(data[prop].toString());
-                const newline2 = PdfTk.stringToBuffer('\n');
-                info.push(begin, key, newline, value, newline2);
-            }
-        }
-        return Buffer.concat(info);
+        return PdfTk.stringToBuffer(PdfTk.infoObjectToString(data));
     }
 
     /**
@@ -1085,6 +1170,7 @@ class PdfTk {
 // module.exports = PdfTk;
 
 module.exports = {
+    PdfTk,
     input: file => new PdfTk(file),
     configure: options => {
         Object.defineProperties(PdfTk.prototype, {
