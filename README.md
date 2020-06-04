@@ -236,6 +236,8 @@ pdftk
       })
 ```
 
+Note: to use this option you need to have Node.js in version >=12.10.0
+
 ## Testing ##
 
 > The tests are a work in progress (feel free to submit pull requests)
