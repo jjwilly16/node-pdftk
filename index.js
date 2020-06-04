@@ -168,6 +168,7 @@ class PdfTk {
      * @static
      * @public
      * @param {(String|Buffer)} str - String to buffer.
+     * @param encoding
      * @returns {Object} Buffered string.
      */
     static stringToBuffer(str, encoding = 'utf8') {
@@ -316,9 +317,10 @@ class PdfTk {
      * @param {String} writeFile - Path to the output file to write from stdout. If used with the "outputDest" parameter, two files will be written.
      * @param {String} [outputDest] - The output file to write without stdout. When present, the returning promise will not contain the output buffer. If used with the "writeFile" parameter, two files will be written.
      * @param {Boolean} [needsOutput=true] - Optional boolean used to exclude the 'output' argument (only used for specific methods).
+     * @param options
      * @returns {Promise} Promise that resolves the output buffer, if "outputDest" is not given.
      */
-    output(writeFile, outputDest, needsOutput = true) {
+    output(writeFile, outputDest, needsOutput = true, options = { returnMany: false, }) {
         return new this._Promise((resolve, reject) => {
 
             if (this.error) {
@@ -365,6 +367,20 @@ class PdfTk {
                     this._cleanUpTempFiles();
 
                     if (code === 0) {
+                        if (options.returnMany) {
+                            const dir = path.dirname(outputDest);
+                            const fileNames = fs.readdirSync(dir).filter(f => path.extname(f) === '.pdf');
+                            return Promise.all(fileNames.map(f => fs.readFileSync(dir + '/' + f))).then(buffers => {
+
+                                if (!writeFile && options.tempDir && !options.saveResults) {
+                                    fs.rmdirSync(options.tempDir, { recursive: true, });
+                                }
+
+                                resolve(buffers);
+
+                            });
+                        }
+
                         const output = Buffer.concat(result);
                         if (writeFile) {
                             return fs.writeFile(writeFile, output, err => {
@@ -373,6 +389,8 @@ class PdfTk {
                             });
                         }
                         return resolve(output);
+
+
                     }
                     return reject(code);
                 });
@@ -440,19 +458,27 @@ class PdfTk {
     /**
      * Splits a single PDF into individual pages.
      * @public
-     * @param {String} [outputOptions] - Burst output options for naming conventions.
-     * @returns {Promise}
+     * @param {String} [outputPath] - Burst output options for naming conventions.
+     * @param options
+     * @returns {Promise | PdfTk}
      * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst}
      */
-    burst(outputOptions) {
+    burst(outputPath, options = { saveResults: false, returnMany: false, }) {
         if (this.error) return this;
-        const hasOutput = !!outputOptions;
+        const hasOutput = !!outputPath;
         try {
             this.args.push('burst');
         } catch (err) {
             this.error = err;
         }
-        return this.output(null, (outputOptions || null), hasOutput);
+        if (outputPath) {
+            const dirname = path.dirname(outputPath);
+            if (!fs.existsSync(dirname)) {
+                fs.mkdirSync(dirname);
+                options.tempDir = dirname;
+            }
+        }
+        return this.output(null, (outputPath || null), hasOutput, options);
     }
 
     /**

@@ -7,6 +7,29 @@ const fs = require('fs');
 const path = require('path');
 const pdftk = require('..');
 
+const concatenateHelper = (testFile, input, infoFile) => pdftk
+    .input(input)
+    .cat()
+    .keepFinalId()
+    .output()
+    .then(function (buffer) {
+        // this one is tricky because these lines change every time a file gets created, so they can't be directly compared
+        // ------------------
+        // 0xB595: /ModDate
+        // 0xB5B8: /CreationDate
+        // 0xBB98: /ID
+        //-------------------
+
+        // Need to run updateInfo to have the metadata match the test file
+
+        return pdftk
+            .input(buffer)
+            .updateInfoUtf8(infoFile)
+            .output();
+    })
+    .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+    .catch(err => expect(err).to.be.null);
+
 describe('cat', function () {
 
     it('should catenate pages with filepath inputs', function () {
@@ -18,28 +41,7 @@ describe('cat', function () {
         ];
         const infoFile = path.join(__dirname, './files/documentcat.info');
 
-        return pdftk
-            .input(input)
-            .cat()
-            .keepFinalId()
-            .output()
-            .then(function (buffer) {
-                // this one is tricky because these lines change every time a file gets created, so they can't be directly compared
-                // ------------------
-                // 0xB595: /ModDate
-                // 0xB5B8: /CreationDate
-                // 0xBB98: /ID
-                //-------------------
-
-                // Need to run updateInfo to have the metadata match the test file
-
-                return pdftk
-                    .input(buffer)
-                    .updateInfoUtf8(infoFile)
-                    .output();
-            })
-            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
-            .catch(err => expect(err).to.be.null);
+        return concatenateHelper(testFile, input, infoFile);
     });
 
     it('should catenate pages with buffer inputs', function () {
@@ -51,28 +53,7 @@ describe('cat', function () {
         ];
         const infoFile = path.join(__dirname, './files/documentcat.info');
 
-        return pdftk
-            .input(input)
-            .cat()
-            .keepFinalId()
-            .output()
-            .then(function (buffer) {
-                // this one is tricky because these lines change every time a file gets created, so they can't be directly compared
-                // ------------------
-                // 0xB595: /ModDate
-                // 0xB5B8: /CreationDate
-                // 0xBB98: /ID
-                //-------------------
-
-                // Need to run updateInfo to have the metadata match the test file
-
-                return pdftk
-                    .input(buffer)
-                    .updateInfoUtf8(infoFile)
-                    .output();
-            })
-            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
-            .catch(err => expect(err).to.be.null);
+        return concatenateHelper(testFile, input, infoFile);
     });
 
     it('should catenate pages with handles and filepath inputs', function () {
