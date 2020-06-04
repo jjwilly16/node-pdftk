@@ -3,9 +3,9 @@ const chai = require('chai');
 
 const { expect, } = chai;
 
-const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
+const pdftk = require('..');
 
 describe('dumpDataFields', function () {
 
@@ -46,17 +46,16 @@ describe('dumpDataFields', function () {
             .dumpDataFields()
             .output(output)
             .then(buffer => expect(buffer.equals(testFile)).to.be.true)
-            .then(() =>
-                new Promise((resolve, reject) => {
-                    let file;
-                    try {
-                        file = fs.readFileSync(output);
-                    } catch (err) {
-                        return reject(err);
-                    }
-                    return resolve(file);
-                })
-                    .then(buffer => expect(buffer.equals(testFile)).to.be.true))
+            .then(() => new Promise((resolve, reject) => {
+                let file;
+                try {
+                    file = fs.readFileSync(output);
+                } catch (err) {
+                    return reject(err);
+                }
+                return resolve(file);
+            })
+                .then(buffer => expect(buffer.equals(testFile)).to.be.true))
             .catch(err => expect(err).to.be.null);
     });
 

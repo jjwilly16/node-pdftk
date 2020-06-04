@@ -37,14 +37,14 @@
     ]
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.13.0",
-    "jsdoc": "^3.5.5",
-    "mocha": "^5.2.0",
-    "mocha-eslint": "^4.1.0",
-    "nyc": "^11.8.0",
-    "rimraf": "^2.6.2"
+    "chai": "^4.2.0",
+    "eslint": "^7.1.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "jsdoc": "^3.6.4",
+    "mocha": "^7.2.0",
+    "mocha-eslint": "^6.0.0",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2"
   }
 }
