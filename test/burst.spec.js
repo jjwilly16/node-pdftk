@@ -16,7 +16,7 @@ describe('burst', function () {
 
     it('should return array of buffers if option returnMany is applied', function () {
         const input = path.join(__dirname, './files/document1.pdf');
-        const pathTemplate = path.join(__dirname, './.tmp/page_%03d.pdf');
+        const pathTemplate = path.join(__dirname, './.temp/_custom_dir_to_delete/page_%03d.pdf');
 
         return pdftk
             .input(input)
@@ -26,7 +26,22 @@ describe('burst', function () {
                 res.every(b => expect(b).to.be.instanceof(Buffer));
                 expect(path.dirname(pathTemplate)).to.not.be.a.path();
             });
-    }); //saveResults
+    });
+
+    it('should work for nested directories', function () {
+        const input = path.join(__dirname, './files/document1.pdf');
+        const id1 = Math.random();
+        const id2 = Math.random();
+        const pathTemplate = path.join(__dirname, `./.temp/${id1}/${id2}/page_%03d.pdf`);
+
+        return pdftk
+            .input(input)
+            .burst(pathTemplate, { returnMany: true, })
+            .then(res => {
+                expect(res).to.be.array();
+                expect(path.dirname(pathTemplate)).to.not.be.a.path();
+            });
+    });
 
     it('should save file directory if option saveResults is applied', function () {
         const input = path.join(__dirname, './files/document1.pdf');

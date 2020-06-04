@@ -236,7 +236,12 @@ pdftk
       })
 ```
 
-Note: to use this option you need to have Node.js in version >=12.10.0
+Notes:
+
+1) To use this option you need to have Node.js in version >=12.10.0
+2) If you are using nested paths and do not want to save files you need to remove
+them yourself. This library can't handle this to avoid removing files from
+paralel executions. 
 
 ## Testing ##
 

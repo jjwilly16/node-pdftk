@@ -474,7 +474,7 @@ class PdfTk {
         if (outputPath) {
             const dirname = path.dirname(outputPath);
             if (!fs.existsSync(dirname)) {
-                fs.mkdirSync(dirname);
+                fs.mkdirSync(dirname, { recursive: true, });
                 options.tempDir = dirname;
             }
         }
