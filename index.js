@@ -185,29 +185,31 @@ class PdfTk {
      * @returns {object} Fdf field data as a JSON.
      */
     static fdfToJSON(fdfBuffer) {
-        try {
-            const fdfString = fdfBuffer.toString();
-            const fieldsString = fdfString.substring(
-                fdfString.lastIndexOf('/Fields ['),
-                fdfString.lastIndexOf(']')
-            );
-            const fdfJson = fieldsString.split('<<')
-                .filter(stringSplit => stringSplit.includes('/T') || stringSplit.includes('\V'))
-                .reduce((json, stringLine) => {
-                    // eslint-disable-next-line array-bracket-spacing
-                    const [, valueMatch, titleMatch] = stringLine.match(/\/V\s*([^\n\r]*)\s*\/T\s*([^\n\r]*)/);
-                    titleMatch = titleMatch.startsWith('(') ? titleMatch.substring(1) : titleMatch;
-                    titleMatch = titleMatch.endsWith(')') ? titleMatch.substring(0, titleMatch.length - 1) : titleMatch;
-                    valueMatch = valueMatch.startsWith('(') ? valueMatch.substring(1) : valueMatch;
-                    valueMatch = valueMatch.endsWith(')') ? valueMatch.substring(0, valueMatch.length - 1) : valueMatch;
-                    json[titleMatch] = valueMatch;
-                    return json;
-                }, {});
-            return fdfJson;
-        } catch (err) {
-            if (err instanceof TypeError) err.message = 'Function must be called on generated FDF output';
-            throw err;
+        const fieldsRegExp = /\/Fields\s*\[\s*<<([\s\S]*?)>>\s*\]\s*>>/;
+        const singleFieldRegExp = /\/([VT])\s*[(]((?:\\[)]|[^)])*)[)]/g;
+
+        const fieldsMatch = fdfBuffer.toString().match(fieldsRegExp);
+        if (!fieldsMatch) {
+            throw TypeError('Function must be called on generated FDF output');
         }
+        const fdfJson = fieldsMatch[1].split(/>>\s*<</)
+            .reduce((json, field) => {
+                let fieldName = null;
+                let fieldValue = null;
+                // eslint-disable-next-line comma-dangle
+                for (const [, letter, contents] of field.matchAll(singleFieldRegExp)) {
+                    switch (letter) {
+                        case 'V': fieldValue = contents; break;
+                        case 'T': fieldName = contents; break;
+                        default: break;
+                    }
+                }
+                if (fieldValue !== null && fieldName !== null) {
+                    json[fieldName] = fieldValue;
+                }
+                return json;
+            }, {});
+        return fdfJson;
     }
 
     /**
@@ -527,6 +529,16 @@ class PdfTk {
             this.error = err;
         }
         return this;
+    }
+
+    /**
+     * Read PDF form fields into JSON data. Implies generateFdf().
+     * @public
+     * @returns {Promise} Promise that resolves the form fill data as JSON, field name as key and field value as value.
+     * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-generate-fdf}
+     */
+    readFormFieldValuesAsJSON() {
+        return this.generateFdf().output().then(buffer => PdfTk.fdfToJSON(buffer));
     }
 
     /**
@@ -1139,5 +1151,4 @@ module.exports = {
             },
         });
     },
-    fdfToJSON: PdfTk.fdfToJSON,
 };

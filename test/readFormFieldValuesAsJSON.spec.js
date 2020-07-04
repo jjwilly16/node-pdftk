@@ -7,7 +7,7 @@ const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
 
-describe('generateFormDataJson', function () {
+describe('readFormFieldValuesAsJSON', function () {
 
     it('should generate a json file from the fdf of an unfilled pdf', function () {
 
@@ -16,9 +16,8 @@ describe('generateFormDataJson', function () {
 
         return pdftk
             .input(input)
-            .generateFdf()
-            .output()
-            .then(buffer => expect(pdftk.fdfToJSON(buffer)).to.eql(testFile))
+            .readFormFieldValuesAsJSON()
+            .then(json => expect(json).to.eql(testFile))
             .catch(err => expect(err).to.be.null);
     });
 
@@ -29,11 +28,8 @@ describe('generateFormDataJson', function () {
 
         return pdftk
             .input(input)
-            .generateFdf()
-            .output()
-            .then(buffer => {
-                expect(pdftk.fdfToJSON(buffer)).to.deep.equal(testFile);
-            })
+            .readFormFieldValuesAsJSON()
+            .then(json => expect(json).to.deep.equal(testFile))
             .catch(err => expect(err).to.be.null);
     });
 
@@ -44,9 +40,8 @@ describe('generateFormDataJson', function () {
 
         return pdftk
             .input(input)
-            .generateFdf()
-            .output()
-            .then(buffer => expect(pdftk.fdfToJSON(buffer)).to.eql(testFile))
+            .readFormFieldValuesAsJSON()
+            .then(json => expect(json).to.eql(testFile))
             .catch(err => expect(err).to.be.null);
     });
 
@@ -56,8 +51,8 @@ describe('generateFormDataJson', function () {
 
         return pdftk
             .input(input)
-            .output()
-            .then(buffer => pdftk.fdfToJSON(buffer))
+            .readFormFieldValuesAsJSON()
+            .then(json => json)
             .catch(err => {
                 expect(err.name).to.equal('TypeError');
                 expect(err.message).to.equal('Function must be called on generated FDF output');
