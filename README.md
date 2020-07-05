@@ -154,6 +154,20 @@ pdftk
     });
 ```
 
+#### Get names and values of form fields ####
+
+```javascript
+pdftk
+    .input(fs.readFileSync('./file.pdf'))
+    .readFormFieldValuesAsJSON()
+    .then(json => for (const [name, value] of Object.entries(json)) {
+        // print values or fill the form with modifications
+    })
+    .catch(err => {
+        // handle errors
+    });
+```
+
 #### Useful chaining ####
 
 ```javascript

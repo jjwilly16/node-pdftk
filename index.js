@@ -178,6 +178,41 @@ class PdfTk {
     }
 
     /**
+     * Creates JSON data from fdf buffer output.
+     * @static
+     * @public
+     * @param {Buffer} fdfBuffer - fdf buffer to transform to JSON.
+     * @returns {object} Fdf field data as a JSON.
+     */
+    static fdfToJSON(fdfBuffer) {
+        const fieldsRegExp = /\/Fields\s*\[\s*<<([\s\S]*?)>>\s*\]\s*>>/;
+        const singleFieldRegExp = /\/([VT])\s*[(]((?:\\[)]|[^)])*)[)]/g;
+
+        const fieldsMatch = fdfBuffer.toString().match(fieldsRegExp);
+        if (!fieldsMatch) {
+            throw TypeError('Function must be called on generated FDF output');
+        }
+        const fdfJson = fieldsMatch[1].split(/>>\s*<</)
+            .reduce((json, field) => {
+                let fieldName = null;
+                let fieldValue = null;
+                // eslint-disable-next-line comma-dangle
+                for (const [, letter, contents] of field.matchAll(singleFieldRegExp)) {
+                    switch (letter) {
+                        case 'V': fieldValue = contents; break;
+                        case 'T': fieldName = contents; break;
+                        default: break;
+                    }
+                }
+                if (fieldValue !== null && fieldName !== null) {
+                    json[fieldName] = fieldValue;
+                }
+                return json;
+            }, {});
+        return fdfJson;
+    }
+
+    /**
      * Sanitizes fdf input
      * @statuc
      * @public
@@ -494,6 +529,16 @@ class PdfTk {
             this.error = err;
         }
         return this;
+    }
+
+    /**
+     * Read PDF form fields into JSON data. Implies generateFdf().
+     * @public
+     * @returns {Promise} Promise that resolves the form fill data as JSON, field name as key and field value as value.
+     * @see {@link https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-generate-fdf}
+     */
+    readFormFieldValuesAsJSON() {
+        return this.generateFdf().output().then(buffer => PdfTk.fdfToJSON(buffer));
     }
 
     /**
