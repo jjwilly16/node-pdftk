@@ -176,6 +176,73 @@ pdftk
     });
 ```
 
+### Split PDF to pages (burst)
+
+This method is pretty straightforward:
+
+```
+pdftk
+    .input('./multiPage.pdf')
+    .burst()
+    .then(() => {
+        // There is no output - files will be created in working directory
+        // You'll have to use 'fs' to read them here
+    })
+```
+
+Files will be saved in directory pointed by `process.cwd()`. This can be sometimes 
+problematic, so you can indicate directory using syntax described here:
+
+> https://www.pdflabs.com/docs/pdftk-man-page/#dest-op-burst
+
+For example:
+
+```
+pdftk
+      .input(pdf)
+      .burst('./your/file/path/page_%02d.pdf')
+      .then(()=> {
+        
+      })
+```
+
+By default, if you selected directory that exists, files will be saved there permanently.
+If you selected not existing it will be treated as temporary unless you add flag 
+`saveResult` to options. If you need access to these files you should type:
+
+```
+const pathTemplate = './your/file/path/page_%02d.pdf';
+
+pdftk
+      .input(pdf)
+      .burst(pathTemplate, {saveResults: true})
+      .then(()=> {
+        path.dirname(pathTemplate) // <-- there are your files
+      })
+```
+
+If you need to use files in flight and process them you can use flag `returnMany`.
+You still need to indicate path template in location when you have rights to write,
+but by default this files will not be saved. Example of code:
+
+```
+const pathTemplate = path.join(__dirname, `./.tmp/${Math.random()}/page_%03d.pdf`);
+
+pdftk
+      .input(pdf)
+      .burst(pathTemplate, {returnMany: true})
+      .then((arr)=> {
+        console.log(arr) // <-- array of buffers for further processing
+      })
+```
+
+Notes:
+
+1) To use this option you need to have Node.js in version >=12.10.0
+2) If you are using nested paths and do not want to save files you need to remove
+them yourself. This library can't handle this to avoid removing files from
+paralel executions. 
+
 ## Testing ##
 
 > The tests are a work in progress (feel free to submit pull requests)

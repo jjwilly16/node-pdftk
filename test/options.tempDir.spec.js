@@ -3,10 +3,10 @@ const chai = require('chai');
 
 const { expect, } = chai;
 
-const pdftk = require('../');
 const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
+const pdftk = require('..');
 
 describe('option - tempDir', function () {
 
