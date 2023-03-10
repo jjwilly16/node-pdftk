@@ -10,6 +10,8 @@ A wrapper for [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) with
 
 Make sure you have [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) installed and in your system path (or configure the plugin to point to your binary file - see options below).
 
+You can install `pdftk` using commands mentioned here https://command-not-found.com/pdftk
+
 > **Mac users** - Be aware of [this PDFTk issue](https://github.com/jjwilly16/node-pdftk/issues/3)
 
 ## Installation ##
