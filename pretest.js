@@ -21,11 +21,13 @@ function sequentialPromise(operations) {
 
 const commands = [
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledform.temp.pdf',
+    'test/files/form2.pdf fill_form test/files/form2.fdf output test/files/filledform2.temp.pdf',
     'test/files/form.pdf fill_form test/files/formwithnumber.fdf output test/files/filledformwithnumber.temp.pdf',
     'test/files/form.pdf fill_form test/files/form.fdf output test/files/filledformflat.temp.pdf flatten',
     'test/files/form.pdf fill_form test/files/form.blank.fdf output test/files/filledformempty.temp.pdf flatten',
     'test/files/form.pdf fill_form test/files/form.escape.fdf output test/files/filledformescape.temp.pdf flatten',
     'test/files/form.pdf generate_fdf output test/files/form.temp.fdf',
+    'test/files/form2.pdf generate_fdf output test/files/form2.temp.fdf',
     'test/files/form.pdf stamp test/files/logo.pdf output test/files/stamp.temp.pdf',
     'test/files/form.pdf multistamp test/files/logo.pdf output test/files/multistamp.temp.pdf',
     'A=test/files/document1.pdf B=test/files/document2.pdf cat A B output test/files/documentcatwithdate.temp.pdf keep_final_id', 'test/files/documentcatwithdate.temp.pdf update_info_utf8 test/files/documentcat.info output test/files/documentcat.temp.pdf',
@@ -33,6 +35,7 @@ const commands = [
     'test/files/form.pdf multibackground test/files/logo.pdf output test/files/multibackground.temp.pdf',
     'test/files/form.pdf dump_data_fields output test/files/form.fields.temp.info',
     'test/files/form.pdf dump_data_fields_utf8 output test/files/form.fields.utf8.temp.info',
+    'test/files/form2.pdf dump_data_fields_utf8 output test/files/form2.fields.utf8.temp.info',
 ].map(i => pdftk.bind(this, i));
 
 

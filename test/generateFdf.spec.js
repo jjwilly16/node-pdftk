@@ -22,6 +22,19 @@ describe('generateFdf', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should generate a hierarchical fdf from a pdf containing partially qualified field names', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/form2.temp.fdf'));
+        const input = path.join(__dirname, './files/form2.pdf');
+
+        return pdftk
+            .input(input)
+            .generateFdf()
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => expect(err).to.be.null);
+    });
+
     it('should generate an fdf file from a pdf with a buffer input', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/form.temp.fdf'));

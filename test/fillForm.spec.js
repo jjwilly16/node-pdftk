@@ -25,6 +25,29 @@ describe('fillForm', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should fill a form featuring partially qualified field names (hierarchical/grouped fields)', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/filledform2.temp.pdf'));
+        const input = path.join(__dirname, './files/form2.pdf');
+
+        return pdftk
+            .input(input)
+            .fillForm({
+                'topmostSubform[0]': {
+                    'Page1[0]': {
+                        'f1_1[0]': 'John Doe',
+                        'f1_2[0]': '123-12-3123',
+                    },
+                },
+            })
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => {
+                if (err) console.error(err);
+                return expect(err).to.be.null;
+            });
+    });
+
     it('should fill a form without flattening it with a number input', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/filledformwithnumber.temp.pdf'));

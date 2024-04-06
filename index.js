@@ -191,6 +191,54 @@ class PdfTk {
     }
 
     /**
+     * Converts a string to a buffer and appends it to an array of buffers.
+     * @static
+     * @public
+     * @param {Array} buffers - an array of buffers to which the result will be concatenated
+     * @param {String} str - String to buffer.
+     * @param {String} encoding - encodding
+     * @returns {Number} - size of the buffer
+     */
+    static stringToBuffers(buffers, str, encoding = 'utf8') {
+        const buffer = PdfTk.stringToBuffer(str, encoding);
+        buffers.push(buffer);
+        return buffer.length;
+    }
+
+    /**
+     * Returns a buffer from a JSON object representing a form field.
+     * @static
+     * @public
+     * @param {String} name - string representing a (partial) field name in the fdf.
+     * @param {Object} value - JSON object representing the value to be added to the fdf.
+     * @returns {Buffer} Fdf data as a buffer.
+     */
+    static fdfFieldToBuffer(name, value) {
+        const buffers = [];
+        let len = 0;
+        if (value !== null && value !== undefined) {
+            len += PdfTk.stringToBuffers(buffers, '<<\n/T (');
+            len += PdfTk.stringToBuffers(buffers, PdfTk.sanitizeForFdf(name.toString()), 'binary');
+            len += PdfTk.stringToBuffers(buffers, ')\n');
+            if (typeof value === 'object') {
+                len += PdfTk.stringToBuffers(buffers, '/Kids [\n');
+                for (const prop in value) {
+                    const buf = PdfTk.fdfFieldToBuffer(prop, value[prop]);
+                    len += buf.length;
+                    buffers.push(buf);
+                }
+                len += PdfTk.stringToBuffers(buffers, ']\n');
+            } else {
+                len += PdfTk.stringToBuffers(buffers, '/V (');
+                len += PdfTk.stringToBuffers(buffers, PdfTk.sanitizeForFdf(value.toString()), 'binary');
+                len += PdfTk.stringToBuffers(buffers, ')\n');
+            }
+            len += PdfTk.stringToBuffers(buffers, '>>\n');
+        }
+        return Buffer.concat(buffers, len);
+    }
+
+    /**
      * Creates fdf file from JSON input.
      * Converts input values to binary buffer, which seems to allow PdfTk to render utf-8 characters.
      * @static
@@ -199,63 +247,39 @@ class PdfTk {
      * @returns {Buffer} Fdf data as a buffer.
      */
     static generateFdfFromJSON(data) {
-
-        const header = PdfTk.stringToBuffer(`
-            %FDF-1.2\n
-            ${String.fromCharCode(226) + String.fromCharCode(227) + String.fromCharCode(207) + String.fromCharCode(211)}\n
-            1 0 obj\n
-            <<\n
-            /FDF\n
-            <<\n
-            /Fields [\n
-        `);
-
-        let body = PdfTk.stringToBuffer('');
+        const buffers = [];
+        let len = 0;
+        len += PdfTk.stringToBuffers(buffers, `%FDF-1.2
+%${String.fromCharCode(226) + String.fromCharCode(227) + String.fromCharCode(207) + String.fromCharCode(211)}
+1 0 obj
+<<
+/FDF
+<<
+/Fields [
+`, 'binary');
 
         for (const prop in data) {
             /* istanbul ignore else  */
-            if (data.hasOwnProperty(prop) && data[prop] !== null && data[prop] !== undefined) {
-                body = Buffer.concat([
-                    body,
-                    PdfTk.stringToBuffer('<<\n/T ('),
-                ]);
-                body = Buffer.concat([
-                    body,
-                    PdfTk.stringToBuffer(PdfTk.sanitizeForFdf(prop.toString()), 'binary'),
-                ]);
-                body = Buffer.concat([
-                    body,
-                    PdfTk.stringToBuffer(')\n/V('),
-                ]);
-                body = Buffer.concat([
-                    body,
-                    PdfTk.stringToBuffer(PdfTk.sanitizeForFdf(data[prop].toString()), 'binary'),
-                ]);
-                body = Buffer.concat([
-                    body,
-                    PdfTk.stringToBuffer(')\n>>\n'),
-                ]);
+            if (data.hasOwnProperty(prop)) {
+                const buf = PdfTk.fdfFieldToBuffer(prop, data[prop]);
+                len += buf.length;
+                buffers.push(buf);
             }
         }
 
-        const footer = PdfTk.stringToBuffer(`
-            ]\n
-            >>\n
-            >>\n
-            endobj \n
-            trailer\n
-            \n
-            <<\n
-            /Root 1 0 R\n
-            >>\n
-            %%EOF\n
-        `);
+        len += PdfTk.stringToBuffers(buffers, `]
+>>
+>>
+endobj
+trailer
 
-        return Buffer.concat([
-            header,
-            body,
-            footer,
-        ]);
+<<
+/Root 1 0 R
+>>
+%%EOF
+`, 'binary');
+
+        return Buffer.concat(buffers, len);
 
     }
 
@@ -341,9 +365,19 @@ class PdfTk {
                 const result = [];
 
                 child.stderr.on('data', data => {
-                    if (!this._ignoreWarnings && data.toString().toLowerCase().includes('error')) {
-                        this._cleanUpTempFiles();
-                        return reject(data.toString('utf8'));
+                    if (!this._ignoreWarnings) {
+                        let str = data.toString();
+                        if (str.toLowerCase().includes('error')) {
+                            this._cleanUpTempFiles();
+                            try {
+                                str = data.toString('utf8');
+                            } catch (e) {
+                                // toString('utf8') can throw when toString() (above) did not...
+                                // if it does, ignore this secondary error and
+                                // reject using the string we already have.
+                            }
+                            return reject(str);
+                        }
                     }
                 });
 

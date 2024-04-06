@@ -22,6 +22,19 @@ describe('dumpDataFieldsUtf8', function () {
             .catch(err => expect(err).to.be.null);
     });
 
+    it('should output hierarchical data fields to file with file path input', function () {
+
+        const testFile = fs.readFileSync(path.join(__dirname, './files/form2.fields.utf8.temp.info'));
+        const input = path.join(__dirname, './files/form2.pdf');
+
+        return pdftk
+            .input(input)
+            .dumpDataFieldsUtf8()
+            .output()
+            .then(buffer => expect(buffer.equals(testFile)).to.be.true)
+            .catch(err => expect(err).to.be.null);
+    });
+
     it('should output data fields to file with buffer input', function () {
 
         const testFile = fs.readFileSync(path.join(__dirname, './files/form.fields.utf8.temp.info'));
